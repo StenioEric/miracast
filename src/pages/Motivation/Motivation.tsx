@@ -1,10 +1,17 @@
 import type { ReactElement } from "react";
 
+import { DraMiraAvatar } from "../../components/DraMiraAvatar/DraMiraAvatar";
 import formaDecorativa from "../../assets/forma-decorativa.svg";
 import limoneno from "../../assets/limoneno.svg";
 import "./style.css";
 
-export const Motivation = (): ReactElement => (
+type MotivationProps = {
+  onStartProtocol: () => void;
+};
+
+export const Motivation = ({
+  onStartProtocol,
+}: MotivationProps): ReactElement => (
   <main className="motivacao" data-node-id="13:1225">
     <div className="motivacao__shell">
       <img
@@ -24,9 +31,7 @@ export const Motivation = (): ReactElement => (
       <h1 className="motivacao__titulo">MiraCast</h1>
 
       <section className="motivacao__orientacao" aria-label="Orientação da Dra. Mira">
-        <div className="motivacao__avatar" aria-hidden="true">
-          👩‍🔬
-        </div>
+        <DraMiraAvatar className="motivacao__avatar" />
         <div className="motivacao__fala">
           <p className="motivacao__nome">DRA. MIRA</p>
           <p>
@@ -52,7 +57,11 @@ export const Motivation = (): ReactElement => (
           width="325"
           height="229"
         />
-        <button className="motivacao__botao" type="button">
+        <button
+          className="motivacao__botao"
+          type="button"
+          onClick={onStartProtocol}
+        >
           ACEITAR A EXPEDIÇÃO
         </button>
       </section>
