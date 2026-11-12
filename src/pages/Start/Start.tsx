@@ -6,9 +6,13 @@ import "./style.css";
 
 type StartProps = {
   onEnterAsStudent: () => void;
+  onEnterAsProfessor: () => void;
 };
 
-export const Start = ({ onEnterAsStudent }: StartProps): ReactElement => {
+export const Start = ({
+  onEnterAsStudent,
+  onEnterAsProfessor,
+}: StartProps): ReactElement => {
   return (
     <main className="inicio-perfil" data-node-id="2022:2">
       <div className="inicio-perfil__shell">
@@ -47,7 +51,11 @@ export const Start = ({ onEnterAsStudent }: StartProps): ReactElement => {
               </span>
               <span>Entrar como Aluno</span>
             </button>
-            <button className="inicio-perfil__botao" type="button">
+            <button
+              className="inicio-perfil__botao"
+              type="button"
+              onClick={onEnterAsProfessor}
+            >
               <span className="inicio-perfil__icone" aria-hidden="true">
                 👩‍🔬
               </span>
