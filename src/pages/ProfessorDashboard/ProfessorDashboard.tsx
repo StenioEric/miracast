@@ -4,7 +4,19 @@ import { Brand } from "../../components/Brand/Brand";
 import formaDecorativa from "../../assets/forma-decorativa.svg";
 import "./style.css";
 
-export const ProfessorDashboard = (): ReactElement => (
+type ProfessorDashboardProps = {
+  room: {
+    name: string;
+    code: string;
+    students: number;
+  };
+  onCreateRoom: () => void;
+};
+
+export const ProfessorDashboard = ({
+  room,
+  onCreateRoom,
+}: ProfessorDashboardProps): ReactElement => (
   <main className="professor-dashboard" data-node-id="2020:16">
     <div className="professor-dashboard__shell">
       <img
@@ -26,13 +38,19 @@ export const ProfessorDashboard = (): ReactElement => (
           <h2>Minhas salas</h2>
 
           <article className="professor-dashboard__room">
-            <h3>Estereoquímica - Turma A</h3>
-            <p className="professor-dashboard__code">Código: ABC123</p>
-            <p className="professor-dashboard__students">3 alunos</p>
-            <button type="button">Acessar · Turma A</button>
+            <h3>{room.name}</h3>
+            <p className="professor-dashboard__code">Código: {room.code}</p>
+            <p className="professor-dashboard__students">
+              {room.students} {room.students === 1 ? "aluno" : "alunos"}
+            </p>
+            <button type="button">Acessar · {room.name}</button>
           </article>
 
-          <button className="professor-dashboard__create" type="button">
+          <button
+            className="professor-dashboard__create"
+            onClick={onCreateRoom}
+            type="button"
+          >
             Criar nova sala
           </button>
         </section>
