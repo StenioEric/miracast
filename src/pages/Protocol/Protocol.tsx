@@ -12,7 +12,11 @@ const questions = [
   "As duas formas (enantiômeros) interagem de forma diferente com o mundo (luz, receptores)?",
 ];
 
-export const Protocol = (): ReactElement => (
+type ProtocolProps = {
+  onStartPhase1: () => void;
+};
+
+export const Protocol = ({ onStartPhase1 }: ProtocolProps): ReactElement => (
   <main className="protocolo" data-node-id="13:1261">
     <div className="protocolo__shell">
       <img
@@ -56,7 +60,11 @@ export const Protocol = (): ReactElement => (
         <p className="protocolo__guia">
           Seu guia de investigação ao longo de toda a expedição:
         </p>
-        <button className="protocolo__acao" type="button">
+        <button
+          className="protocolo__acao"
+          type="button"
+          onClick={onStartPhase1}
+        >
           INICIAR FASE 1
         </button>
       </section>
