@@ -1,0 +1,169 @@
+.professor-dashboard {
+  min-height: 100svh;
+  background: #2d50d5;
+  color: #fff8db;
+  font-family: "Nunito", "Trebuchet MS", sans-serif;
+}
+
+.professor-dashboard__shell {
+  position: relative;
+  width: min(100%, 393px);
+  min-height: 100svh;
+  margin: 0 auto;
+  padding: 40px 16px 32px;
+  overflow: hidden;
+}
+
+.professor-dashboard__forma {
+  position: absolute;
+  z-index: 0;
+  top: -125px;
+  left: -110px;
+  width: 280px;
+  height: 280px;
+  pointer-events: none;
+}
+
+.professor-dashboard__content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+}
+
+.professor-dashboard__brand {
+  display: flex;
+  width: min(323.4px, 100%);
+  height: 145.58px;
+  flex: 0 0 145.58px;
+  align-items: center;
+  justify-content: center;
+}
+
+.professor-dashboard__badge {
+  display: flex;
+  width: 100%;
+  height: 40px;
+  flex: 0 0 40px;
+  align-items: center;
+  justify-content: center;
+  border: 4px solid #282c29;
+  border-radius: 38px;
+  background: #fff;
+  color: #282c29;
+  font-size: 12px;
+  font-weight: 900;
+  line-height: 1.35;
+  text-align: center;
+}
+
+.professor-dashboard__rooms {
+  display: flex;
+  width: 100%;
+  height: 395px;
+  flex: 0 0 395px;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.professor-dashboard__rooms > h1,
+.professor-dashboard__rooms > h2 {
+  min-height: 1px;
+  flex: 1 0 0;
+  margin: 0;
+  line-height: 1.35;
+}
+
+.professor-dashboard__rooms > h1 {
+  font-size: 24px;
+  font-weight: 900;
+}
+
+.professor-dashboard__rooms > h2 {
+  font-size: 20px;
+  font-weight: 900;
+}
+
+.professor-dashboard__room {
+  display: flex;
+  width: 100%;
+  height: 214px;
+  flex: 0 0 214px;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px;
+  border: 4px solid #282c29;
+  border-radius: 36px;
+  background: #fff;
+  box-shadow: 10px 11px 0 #282c29;
+  color: #282c29;
+}
+
+.professor-dashboard__room h3,
+.professor-dashboard__code,
+.professor-dashboard__students {
+  min-height: 1px;
+  flex: 1 0 0;
+  margin: 0;
+  line-height: 1.35;
+}
+
+.professor-dashboard__room h3 {
+  font-size: 20px;
+  font-weight: 900;
+}
+
+.professor-dashboard__code {
+  font-size: 16px;
+  font-weight: 900;
+}
+
+.professor-dashboard__students {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.professor-dashboard__room button,
+.professor-dashboard__create {
+  width: 100%;
+  height: 50px;
+  flex: 0 0 50px;
+  border: 4px solid #282c29;
+  border-radius: 100px;
+  background: #2d50d5;
+  box-shadow: 6px 7px 0 #282c29;
+  color: #fff8db;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.professor-dashboard__create:focus-visible,
+.professor-dashboard__room button:focus-visible {
+  outline: 3px solid #e5634f;
+  outline-offset: 5px;
+}
+
+.professor-dashboard__footer {
+  width: 100%;
+  flex: 0 0 15px;
+  color: #fff8db;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.35;
+  text-align: center;
+}
+
+@media (max-width: 360px) {
+  .professor-dashboard__room {
+    padding-right: 20px;
+    padding-left: 20px;
+  }
+
+  .professor-dashboard__room h3 {
+    font-size: 18px;
+  }
+}
