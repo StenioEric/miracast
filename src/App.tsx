@@ -1,7 +1,7 @@
-import { Inicio } from "./pages/Inicio/Inicio";
+import { Start } from "./pages/Start/Start";
 
 function App() {
-  return <Inicio />;
+  return <Start />;
 }
 
 export default App;

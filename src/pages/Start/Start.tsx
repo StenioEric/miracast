@@ -4,7 +4,7 @@ import cristal from "../../assets/cristal.svg";
 import formaDecorativa from "../../assets/forma-decorativa.svg";
 import "./style.css";
 
-export const Inicio = (): ReactElement => {
+export const Start = (): ReactElement => {
   return (
     <main className="inicio-perfil" data-node-id="2022:2">
       <div className="inicio-perfil__shell">
