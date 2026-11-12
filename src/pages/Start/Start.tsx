@@ -1,10 +1,14 @@
 import type { ReactElement } from "react";
 
-import cristal from "../../assets/cristal.svg";
+import { Brand } from "../../components/Brand/Brand";
 import formaDecorativa from "../../assets/forma-decorativa.svg";
 import "./style.css";
 
-export const Start = (): ReactElement => {
+type StartProps = {
+  onEnterAsStudent: () => void;
+};
+
+export const Start = ({ onEnterAsStudent }: StartProps): ReactElement => {
   return (
     <main className="inicio-perfil" data-node-id="2022:2">
       <div className="inicio-perfil__shell">
@@ -17,13 +21,7 @@ export const Start = (): ReactElement => {
 
         <div className="inicio-perfil__conteudo">
           <div className="inicio-perfil__marca-area">
-            <header className="inicio-perfil__marca">
-              <h1>MiraCast</h1>
-              <div className="inicio-perfil__subtitulo">
-                <img src={cristal} alt="" aria-hidden="true" />
-                <span>O Segredo do Cristal Quiral</span>
-              </div>
-            </header>
+            <Brand />
           </div>
 
           <p className="inicio-perfil__descricao">
@@ -39,7 +37,11 @@ export const Start = (): ReactElement => {
             <h2 id="inicio-perfil-titulo">
               Como você deseja acessar o MiraCast?
             </h2>
-            <button className="inicio-perfil__botao" type="button">
+            <button
+              className="inicio-perfil__botao"
+              type="button"
+              onClick={onEnterAsStudent}
+            >
               <span className="inicio-perfil__icone" aria-hidden="true">
                 👤
               </span>
