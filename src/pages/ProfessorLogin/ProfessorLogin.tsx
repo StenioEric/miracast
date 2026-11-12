@@ -6,13 +6,16 @@ import "./style.css";
 
 type ProfessorLoginProps = {
   onBackToStudent: () => void;
+  onLogin: () => void;
 };
 
 export const ProfessorLogin = ({
   onBackToStudent,
+  onLogin,
 }: ProfessorLoginProps): ReactElement => {
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    onLogin();
   };
 
   return (
