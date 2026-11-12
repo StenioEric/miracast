@@ -4,9 +4,23 @@ import { Brand } from "../../components/Brand/Brand";
 import formaDecorativa from "../../assets/forma-expedicao.svg";
 import "./style.css";
 
-export const ExpeditionEntry = (): ReactElement => {
+type ExpeditionEntryProps = {
+  roomCode: string;
+  onSubmitName: (name: string) => void;
+};
+
+export const ExpeditionEntry = ({
+  roomCode,
+  onSubmitName,
+}: ExpeditionEntryProps): ReactElement => {
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    const name = formData.get("name");
+
+    if (typeof name === "string" && name.trim()) {
+      onSubmitName(name.trim());
+    }
   };
 
   return (
@@ -23,8 +37,11 @@ export const ExpeditionEntry = (): ReactElement => {
           <Brand />
         </div>
 
-        <div className="expedicao__codigo" aria-label="Código da sala ECY95R">
-          SALA: ECY95R
+        <div
+          className="expedicao__codigo"
+          aria-label={`Código da sala ${roomCode}`}
+        >
+          SALA: {roomCode}
         </div>
 
         <form className="expedicao__formulario" onSubmit={handleSubmit}>
