@@ -1,0 +1,12 @@
+.dra-mira-avatar {
+  display: flex;
+  width: 52px;
+  height: 52px;
+  flex: 0 0 52px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  color: #fff;
+  font-size: 28px;
+  line-height: 1.35;
+}
