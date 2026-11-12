@@ -6,6 +6,7 @@ import { Protocol } from "./pages/Protocol/Protocol";
 import { Classification } from "./pages/Classification/Classification";
 import { WaitingRoom } from "./pages/WaitingRoom/WaitingRoom";
 import { Start } from "./pages/Start/Start";
+import { ProfessorLogin } from "./pages/ProfessorLogin/ProfessorLogin";
 
 const ROOM_CODE = "ECY95R";
 
@@ -17,6 +18,7 @@ function App() {
     | "motivation"
     | "protocol"
     | "classification"
+    | "professorLogin"
   >(() =>
     (() => {
       const initialScreen = new URLSearchParams(window.location.search).get(
@@ -26,10 +28,15 @@ function App() {
       if (initialScreen === "motivacao") return "motivation";
       if (initialScreen === "protocolo") return "protocol";
       if (initialScreen === "classificacao") return "classification";
+      if (initialScreen === "professor-login") return "professorLogin";
       return "start";
     })(),
   );
   const [participantName, setParticipantName] = useState("");
+
+  if (screen === "professorLogin") {
+    return <ProfessorLogin onBackToStudent={() => setScreen("start")} />;
+  }
 
   if (screen === "classification") {
     return <Classification />;
@@ -61,7 +68,12 @@ function App() {
     );
   }
 
-  return <Start onEnterAsStudent={() => setScreen("entry")} />;
+  return (
+    <Start
+      onEnterAsStudent={() => setScreen("entry")}
+      onEnterAsProfessor={() => setScreen("professorLogin")}
+    />
+  );
 }
 
 export default App;
