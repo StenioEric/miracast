@@ -1,10 +1,7 @@
-function App() {
+import { Inicio } from "./pages/Inicio/Inicio";
 
-  return (
-    <div>
-      Olá, seja bem-vindo ao MiraCast! <br />
-    </div>
-  )
+function App() {
+  return <Inicio />;
 }
 
-export default App
+export default App;
