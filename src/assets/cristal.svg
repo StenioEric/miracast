@@ -1,0 +1,8 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="27" height="27" viewBox="0 0 27 27" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Cristal">
+<path id="Faceta sombreada" d="M16.6765 8.73529H27L13.5 26.2059L16.6765 8.73529Z" fill="#318DCB"/>
+<path id="Faceta iluminada" d="M10.3235 8.73529H16.6765L13.5 26.2059L10.3235 8.73529Z" fill="#8CD9F6"/>
+<path id="Coroa" d="M7.14706 1.58824H19.8529L16.6765 8.73529H10.3235L7.14706 1.58824Z" fill="#8CD9F6"/>
+<path id="Silhueta" d="M0 8.73529L7.14706 1.58824H19.8529L27 8.73529L13.5 26.2059L0 8.73529Z" fill="#52B9EC"/>
+</g>
+</svg>
