@@ -8,8 +8,14 @@ import { WaitingRoom } from "./pages/WaitingRoom/WaitingRoom";
 import { Start } from "./pages/Start/Start";
 import { ProfessorLogin } from "./pages/ProfessorLogin/ProfessorLogin";
 import { ProfessorDashboard } from "./pages/ProfessorDashboard/ProfessorDashboard";
+import { ProfessorCreateRoom } from "./pages/ProfessorCreateRoom/ProfessorCreateRoom";
 
 const ROOM_CODE = "ECY95R";
+const DEFAULT_TEACHER_ROOM = {
+  name: "Estereoquímica - Turma A",
+  code: "ABC123",
+  students: 3,
+};
 
 function App() {
   const [screen, setScreen] = useState<
@@ -21,6 +27,7 @@ function App() {
     | "classification"
     | "professorLogin"
     | "professorDashboard"
+    | "professorCreateRoom"
   >(() =>
     (() => {
       const initialScreen = new URLSearchParams(window.location.search).get(
@@ -32,17 +39,39 @@ function App() {
       if (initialScreen === "classificacao") return "classification";
       if (initialScreen === "professor-login") return "professorLogin";
       if (initialScreen === "professor-dashboard") return "professorDashboard";
+      if (initialScreen === "professor-criar-sala") return "professorCreateRoom";
       return "start";
     })(),
   );
   const [participantName, setParticipantName] = useState("");
+  const [createdTeacherRoom, setCreatedTeacherRoom] = useState<{
+    name: string;
+    code: string;
+    students: number;
+  } | null>(null);
 
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [screen]);
 
+  if (screen === "professorCreateRoom") {
+    return (
+      <ProfessorCreateRoom
+        onBackToDashboard={() => setScreen("professorDashboard")}
+        onRoomCreated={(name, code) =>
+          setCreatedTeacherRoom({ name, code, students: 0 })
+        }
+      />
+    );
+  }
+
   if (screen === "professorDashboard") {
-    return <ProfessorDashboard />;
+    return (
+      <ProfessorDashboard
+        room={createdTeacherRoom ?? DEFAULT_TEACHER_ROOM}
+        onCreateRoom={() => setScreen("professorCreateRoom")}
+      />
+    );
   }
 
   if (screen === "professorLogin") {
