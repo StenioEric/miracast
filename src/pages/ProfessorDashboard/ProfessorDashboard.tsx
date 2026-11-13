@@ -8,14 +8,16 @@ type ProfessorDashboardProps = {
   room: {
     name: string;
     code: string;
-    students: number;
+    students: { name: string; score: number }[];
   };
   onCreateRoom: () => void;
+  onOpenRoom: () => void;
 };
 
 export const ProfessorDashboard = ({
   room,
   onCreateRoom,
+  onOpenRoom,
 }: ProfessorDashboardProps): ReactElement => (
   <main className="professor-dashboard" data-node-id="2020:16">
     <div className="professor-dashboard__shell">
@@ -41,9 +43,11 @@ export const ProfessorDashboard = ({
             <h3>{room.name}</h3>
             <p className="professor-dashboard__code">Código: {room.code}</p>
             <p className="professor-dashboard__students">
-              {room.students} {room.students === 1 ? "aluno" : "alunos"}
+              {room.students.length} {room.students.length === 1 ? "aluno" : "alunos"}
             </p>
-            <button type="button">Acessar · {room.name}</button>
+            <button onClick={onOpenRoom} type="button">
+              Acessar · {room.name}
+            </button>
           </article>
 
           <button
