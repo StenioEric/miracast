@@ -9,12 +9,17 @@ import { Start } from "./pages/Start/Start";
 import { ProfessorLogin } from "./pages/ProfessorLogin/ProfessorLogin";
 import { ProfessorDashboard } from "./pages/ProfessorDashboard/ProfessorDashboard";
 import { ProfessorCreateRoom } from "./pages/ProfessorCreateRoom/ProfessorCreateRoom";
+import { ProfessorRoom } from "./pages/ProfessorRoom/ProfessorRoom";
 
 const ROOM_CODE = "ECY95R";
 const DEFAULT_TEACHER_ROOM = {
   name: "Estereoquímica - Turma A",
   code: "ABC123",
-  students: 3,
+  students: [
+    { name: "João Silva", score: 80 },
+    { name: "Maria Santos", score: 95 },
+    { name: "Pedro Oliveira", score: 60 },
+  ],
 };
 
 function App() {
@@ -28,6 +33,7 @@ function App() {
     | "professorLogin"
     | "professorDashboard"
     | "professorCreateRoom"
+    | "professorRoom"
   >(() =>
     (() => {
       const initialScreen = new URLSearchParams(window.location.search).get(
@@ -40,6 +46,7 @@ function App() {
       if (initialScreen === "professor-login") return "professorLogin";
       if (initialScreen === "professor-dashboard") return "professorDashboard";
       if (initialScreen === "professor-criar-sala") return "professorCreateRoom";
+      if (initialScreen === "professor-sala") return "professorRoom";
       return "start";
     })(),
   );
@@ -47,7 +54,7 @@ function App() {
   const [createdTeacherRoom, setCreatedTeacherRoom] = useState<{
     name: string;
     code: string;
-    students: number;
+    students: { name: string; score: number }[];
   } | null>(null);
 
   useEffect(() => {
@@ -59,8 +66,17 @@ function App() {
       <ProfessorCreateRoom
         onBackToDashboard={() => setScreen("professorDashboard")}
         onRoomCreated={(name, code) =>
-          setCreatedTeacherRoom({ name, code, students: 0 })
+          setCreatedTeacherRoom({ name, code, students: [] })
         }
+      />
+    );
+  }
+
+  if (screen === "professorRoom") {
+    return (
+      <ProfessorRoom
+        room={createdTeacherRoom ?? DEFAULT_TEACHER_ROOM}
+        onBackToDashboard={() => setScreen("professorDashboard")}
       />
     );
   }
@@ -70,6 +86,7 @@ function App() {
       <ProfessorDashboard
         room={createdTeacherRoom ?? DEFAULT_TEACHER_ROOM}
         onCreateRoom={() => setScreen("professorCreateRoom")}
+        onOpenRoom={() => setScreen("professorRoom")}
       />
     );
   }
