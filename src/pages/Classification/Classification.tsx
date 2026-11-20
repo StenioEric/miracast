@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { ReactElement } from "react";
+import type { Answer } from "../../features/expedition/steps";
 
 import { DraMiraAvatar } from "../../components/DraMiraAvatar/DraMiraAvatar";
 import tabelaClassificacao from "../../assets/tabela_tela3.svg";
@@ -17,10 +18,15 @@ const objects = [
 type ObjectId = (typeof objects)[number]["id"];
 type Category = "plano" | "espacial";
 
-export const Classification = (): ReactElement => {
+const categoriesByObject: Record<ObjectId, Category> = {
+  folha: "plano", circulo: "plano", cubo: "espacial", piramide: "espacial", esfera: "espacial",
+};
+
+export const Classification = ({ onContinue }: { onContinue: (answer: Answer) => void }): ReactElement => {
   const [answers, setAnswers] = useState<Partial<Record<ObjectId, Category>>>({});
   const [submitted, setSubmitted] = useState(false);
   const allClassified = objects.every(({ id }) => answers[id] !== undefined);
+  const correct = objects.every(({ id }) => answers[id] === categoriesByObject[id]);
 
   const chooseCategory = (objectId: ObjectId, category: Category) => {
     setAnswers((current) => ({ ...current, [objectId]: category }));
@@ -49,8 +55,8 @@ export const Classification = (): ReactElement => {
           <div className="classificacao__fala">
             <p className="classificacao__nome">DRA. MIRA</p>
             <p>
-              Veja estes objetos flutuando na caverna. Classifique cada um: ele
-              é PLANO OU ESPACIAL?
+              Classifique cada representação como plana ou espacial. Considere a
+              folha como uma superfície ideal, sem espessura.
             </p>
           </div>
         </section>
@@ -98,15 +104,17 @@ export const Classification = (): ReactElement => {
 
         <button
           className="classificacao__enviar"
-          disabled={!allClassified || submitted}
-          onClick={() => setSubmitted(true)}
+          disabled={!allClassified}
+          onClick={() => submitted
+            ? onContinue({ value: objects.map(({ id, name }) => `${name}: ${answers[id]}`).join(", "), correct })
+            : setSubmitted(true)}
           type="button"
         >
-          {submitted ? "CLASSIFICAÇÃO REGISTRADA" : "Classificar todos"}
+          {submitted ? "Continuar" : "Classificar todos"}
         </button>
-        <span className="classificacao__status" aria-live="polite">
-          {submitted ? "Classificação registrada." : ""}
-        </span>
+        <p className="classificacao__feedback" role="status">
+          {submitted && (correct ? "Classificação correta!" : "Folha e círculo são planos nesta atividade. Cubo, pirâmide e esfera são espaciais.")}
+        </p>
       </div>
     </main>
   );

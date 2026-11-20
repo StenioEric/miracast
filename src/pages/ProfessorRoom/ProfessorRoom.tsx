@@ -1,108 +1,75 @@
-import type { ReactElement } from "react";
-
-import { Brand } from "../../components/Brand/Brand";
-import formaDecorativa from "../../assets/forma-decorativa.svg";
-import "./style.css";
+import { ProfessorLayout } from "../../components/ProfessorLayout/ProfessorLayout";
+import { activities, activityProgress, scoreSummary } from "../../features/expedition/steps";
+import type { ExpeditionStep } from "../../features/expedition/steps";
+import type { Participant, Room } from "../../features/rooms/rooms";
 
 type ProfessorRoomProps = {
-  room: {
-    name: string;
-    code: string;
-    students: { name: string; score: number }[];
-  };
+  room: Room;
+  participants: Participant[];
+  created?: boolean;
+  onViewRoom: () => void;
+  onStart: () => void;
   onBackToDashboard: () => void;
 };
 
-export const ProfessorRoom = ({
-  room,
-  onBackToDashboard,
-}: ProfessorRoomProps): ReactElement => {
-  const hasStudents = room.students.length > 0;
-  const average = hasStudents
-    ? (room.students.reduce((total, student) => total + student.score, 0) /
-        room.students.length).toLocaleString("pt-BR", {
-        minimumFractionDigits: 1,
-        maximumFractionDigits: 1,
-      })
+export function ProfessorRoom({ room, participants, created, onViewRoom, onStart, onBackToDashboard }: ProfessorRoomProps) {
+  const graded = participants.map(({ answers }) => scoreSummary(answers)).filter(({ total }) => total > 0);
+  const average = graded.length > 0
+    ? Math.round(graded.reduce((sum, score) => sum + 100 * score.correct / score.total, 0) / graded.length)
     : null;
 
   return (
-    <main
-      className="professor-room"
-      data-node-id={hasStudents ? "2020:72" : "2020:58"}
-    >
-      <div className="professor-room__shell">
-        <img
-          className="professor-room__forma"
-          src={formaDecorativa}
-          alt=""
-          aria-hidden="true"
-        />
+    <ProfessorLayout frame={created ? "2020:44" : participants.length ? "2020:72" : "2020:58"}>
+      <section className="professor__panel">
+        <h1>{created ? "Sala criada" : room.name}</h1>
+        {created && <p>{room.name}</p>}
+        <p>Código da sala</p>
+        <output className="professor__code" aria-label="Código da sala">{room.code}</output>
+        {created ? <>
+          <p>Compartilhe o código com os alunos.</p>
+          <button className="flow-button" type="button" onClick={onViewRoom}>Acessar sala</button>
+        </> : <>
+          <p role="status">{room.started ? "Expedição iniciada" : "Aguardando início"}</p>
+          {!room.started && <button className="flow-button" type="button" onClick={onStart}>Iniciar expedição</button>}
+        </>}
+      </section>
 
-        <div className="professor-room__content">
-          <div className="professor-room__brand">
-            <Brand />
-          </div>
-
-          <div className="professor-room__badge">ÁREA DO PROFESSOR</div>
-
-          <section className="professor-room__details" aria-label={room.name}>
-            <article className="professor-room__summary">
-              <h1>{room.name}</h1>
-              <p className="professor-room__code-label">Código da sala</p>
-              <p className="professor-room__code">{room.code}</p>
-              <p className="professor-room__student-count">
-                {room.students.length} {room.students.length === 1 ? "aluno" : "alunos"}
-                {average ? ` · Média: ${average} pontos` : ""}
-              </p>
-            </article>
-
-            {hasStudents ? (
-              <section className="professor-room__progress" aria-labelledby="professor-room-progress-title">
-                <h2 id="professor-room-progress-title">Alunos e pontuação</h2>
-                <p className="professor-room__progress-caption">
-                  Pontuação na atividade · de 0 a 100
-                </p>
-                <div className="professor-room__table" role="table" aria-label="Pontuação dos alunos">
-                  <div className="professor-room__row professor-room__row--header" role="row">
-                    <span role="columnheader">Aluno</span>
-                    <span role="columnheader">Pontuação</span>
-                  </div>
-                  {room.students.map((student) => (
-                    <div className="professor-room__row" role="row" key={student.name}>
-                      <span role="cell">{student.name}</span>
-                      <strong role="cell">{student.score}</strong>
+      {!created && <section className="professor__panel">
+        <h2>Alunos e progresso</h2>
+        {average !== null && <p>Média nas respostas avaliadas: {average}%</p>}
+        {participants.length ? <ul className="professor__list">
+          {participants.map((participant) => {
+            const progress = activityProgress(participant.step);
+            const score = scoreSummary(participant.answers);
+            return <li key={participant.id}>
+              <h3>{participant.name}</h3>
+              <p>{room.started ? stepTitle(participant.step) : "Na sala de espera"}</p>
+              <progress value={progress.completed} max={progress.total} aria-label="Atividades concluídas" />
+              <p>{progress.completed} de {progress.total} atividades · {score.correct} de {score.total} respostas corretas</p>
+              {Object.entries(participant.answers).length > 0 && <details>
+                <summary>Respostas registradas</summary>
+                <dl className="professor__answers">
+                  {Object.entries(participant.answers).map(([step, answer]) => (
+                    <div key={step}>
+                      <dt>{stepTitle(step as ExpeditionStep)}</dt>
+                      <dd>{answer.value}{answer.correct === undefined ? "" : answer.correct ? " · Correta" : " · Incorreta"}</dd>
                     </div>
                   ))}
-                </div>
-              </section>
-            ) : (
-              <section className="professor-room__empty" aria-labelledby="professor-room-empty-title">
-                <h2 id="professor-room-empty-title">Alunos e pontuação</h2>
-                <p className="professor-room__empty-title">
-                  Nenhum aluno entrou ainda.
-                </p>
-                <p className="professor-room__empty-note">
-                  Compartilhe o código {room.code}. Os alunos aparecerão aqui
-                  ao entrar na sala.
-                </p>
-              </section>
-            )}
+                </dl>
+              </details>}
+            </li>;
+          })}
+        </ul> : <p>Nenhum aluno entrou ainda.</p>}
+      </section>}
 
-            <button
-              className="professor-room__back"
-              onClick={onBackToDashboard}
-              type="button"
-            >
-              Voltar ao dashboard
-            </button>
-          </section>
-
-          <footer className="professor-room__footer">
-            MiraCast · PROFQUI/UFRN
-          </footer>
-        </div>
-      </div>
-    </main>
+      <button className="flow-link" type="button" onClick={onBackToDashboard}>Voltar ao painel</button>
+    </ProfessorLayout>
   );
-};
+}
+
+function stepTitle(step: ExpeditionStep) {
+  if (step === "motivation") return "Motivação";
+  if (step === "protocol") return "Protocolo";
+  if (step === "classification") return "Classificação";
+  return activities.find(({ id }) => id === step)?.title;
+}

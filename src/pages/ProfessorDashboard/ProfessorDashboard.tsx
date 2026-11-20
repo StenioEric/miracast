@@ -1,68 +1,31 @@
-import type { ReactElement } from "react";
-
-import { Brand } from "../../components/Brand/Brand";
-import formaDecorativa from "../../assets/forma-decorativa.svg";
-import "./style.css";
+import { ProfessorLayout } from "../../components/ProfessorLayout/ProfessorLayout";
+import type { Room } from "../../features/rooms/rooms";
 
 type ProfessorDashboardProps = {
-  room: {
-    name: string;
-    code: string;
-    students: { name: string; score: number }[];
-  };
+  rooms: (Room & { participantCount: number })[];
   onCreateRoom: () => void;
-  onOpenRoom: () => void;
+  onOpenRoom: (code: string) => void;
+  onBack: () => void;
 };
 
-export const ProfessorDashboard = ({
-  room,
-  onCreateRoom,
-  onOpenRoom,
-}: ProfessorDashboardProps): ReactElement => (
-  <main className="professor-dashboard" data-node-id="2020:16">
-    <div className="professor-dashboard__shell">
-      <img
-        className="professor-dashboard__forma"
-        src={formaDecorativa}
-        alt=""
-        aria-hidden="true"
-      />
-
-      <div className="professor-dashboard__content">
-        <div className="professor-dashboard__brand">
-          <Brand />
-        </div>
-
-        <div className="professor-dashboard__badge">ÁREA DO PROFESSOR</div>
-
-        <section className="professor-dashboard__rooms" aria-label="Salas do professor">
-          <h1>Olá, professor!</h1>
-          <h2>Minhas salas</h2>
-
-          <article className="professor-dashboard__room">
-            <h3>{room.name}</h3>
-            <p className="professor-dashboard__code">Código: {room.code}</p>
-            <p className="professor-dashboard__students">
-              {room.students.length} {room.students.length === 1 ? "aluno" : "alunos"}
-            </p>
-            <button onClick={onOpenRoom} type="button">
-              Acessar · {room.name}
-            </button>
-          </article>
-
-          <button
-            className="professor-dashboard__create"
-            onClick={onCreateRoom}
-            type="button"
-          >
-            Criar nova sala
-          </button>
-        </section>
-
-        <footer className="professor-dashboard__footer">
-          MiraCast · PROFQUI/UFRN
-        </footer>
-      </div>
-    </div>
-  </main>
-);
+export function ProfessorDashboard({ rooms, onCreateRoom, onOpenRoom, onBack }: ProfessorDashboardProps) {
+  return (
+    <ProfessorLayout frame="2020:16">
+      <section className="professor__panel">
+        <h1>Minhas salas</h1>
+        {rooms.length ? <ul className="professor__list">
+          {rooms.map((room) => (
+            <li key={room.code}>
+              <h2>{room.name}</h2>
+              <p>Código: {room.code}</p>
+              <p>{room.participantCount} {room.participantCount === 1 ? "aluno" : "alunos"} · {room.started ? "Em andamento" : "Aguardando início"}</p>
+              <button className="flow-link" type="button" onClick={() => onOpenRoom(room.code)}>Acessar {room.name}</button>
+            </li>
+          ))}
+        </ul> : <p>Nenhuma sala criada.</p>}
+        <button className="flow-button" type="button" onClick={onCreateRoom}>Criar nova sala</button>
+      </section>
+      <button className="flow-link" type="button" onClick={onBack}>Voltar à seleção de perfil</button>
+    </ProfessorLayout>
+  );
+}
