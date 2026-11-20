@@ -83,3 +83,5 @@
 .professor__answers dd { margin: 0; white-space: pre-wrap; }
 .professor__footer { color: #eef1fc; text-align: center; font-size: .8rem; }
 .professor__shell > .flow-link { color: #fff8db; }
+
+.professor progress { width: 100%; max-width: 320px; accent-color: #422cb0; }

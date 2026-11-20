@@ -1,0 +1,72 @@
+.activity {
+  min-height: 100svh;
+  background: #0d897d;
+  color: var(--ink);
+  font-family: var(--body-font);
+}
+
+.activity__shell {
+  position: relative;
+  display: grid;
+  gap: 18px;
+  width: min(100%, 680px);
+  min-height: 100svh;
+  margin-inline: auto;
+  padding: clamp(22px, 5vw, 40px) 18px 36px;
+  align-content: start;
+  overflow: hidden;
+}
+
+.activity__shell > :not(.activity__decoration) { position: relative; }
+
+.activity__decoration {
+  position: absolute;
+  top: -130px;
+  left: -115px;
+  width: 280px;
+  pointer-events: none;
+}
+
+.activity__header { color: #fffde9; text-align: center; }
+.activity__header h1, .activity__header p { margin: 0 0 8px; }
+.activity__header p { font-weight: 800; }
+.activity__header h1 { font: 400 clamp(1.8rem, 6vw, 2.6rem) "Staatliches", sans-serif; }
+
+.activity progress { width: 100%; max-width: 320px; accent-color: #422cb0; }
+
+.activity__guide { display: flex; align-items: center; gap: 10px; }
+.activity__guide p { flex: 1; margin: 0; padding: 10px; border-radius: 12px; background: #fff; }
+
+.activity-card {
+  display: grid;
+  gap: 14px;
+  padding: clamp(14px, 4vw, 24px);
+  border: 3px solid var(--ink);
+  border-radius: 22px;
+  background: #fff;
+  box-shadow: 4px 5px 0 var(--ink);
+}
+
+.activity-card :where(h2, p, fieldset) { margin: 0; }
+.activity-card h2 { font-size: 1.2rem; }
+.activity-card div[role="status"]:empty { display: none; }
+
+.activity-feedback {
+  padding: 11px 14px;
+  border-left: 4px solid #0b6a60;
+  border-radius: 8px;
+  background: #e0f5ec;
+}
+
+.activity-field { display: grid; gap: 6px; min-width: 0; }
+
+.activity-field :is(select, textarea) {
+  min-height: 44px;
+  max-width: 100%;
+  padding: 8px;
+  border: 2px solid #556660;
+  border-radius: 8px;
+  font: inherit;
+}
+
+.activity-field textarea { resize: vertical; }

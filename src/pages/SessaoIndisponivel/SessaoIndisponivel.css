@@ -1,0 +1,6 @@
+.sessao-indisponivel {
+  max-width: 32rem;
+  margin-inline: auto;
+  padding: 24px;
+  font-family: var(--body-font);
+}

@@ -2,7 +2,7 @@ import type { ReactElement } from "react";
 
 import { Brand } from "../../components/Brand/Brand";
 import formaDecorativa from "../../assets/forma-decorativa.svg";
-import "./style.css";
+import "./Start.css";
 
 type StartProps = {
   onEnterAsStudent: () => void;

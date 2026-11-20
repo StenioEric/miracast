@@ -2,7 +2,7 @@ import type { FormEvent } from "react";
 
 import { Brand } from "../../components/Brand/Brand";
 import decoration from "../../assets/forma-expedicao.svg";
-import "./style.css";
+import "./ExpeditionEntry.css";
 
 type ExpeditionEntryProps = {
   onJoin: (code: string, name: string) => void;

@@ -1,4 +1,5 @@
 import { ProfessorLayout } from "../../components/ProfessorLayout/ProfessorLayout";
+import "./ProfessorLogin.css";
 
 type ProfessorLoginProps = {
   onBackToStudent: () => void;

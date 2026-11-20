@@ -1,11 +1,11 @@
 import { useState } from "react";
 import type { ReactElement } from "react";
-import type { Answer } from "../../features/expedition/steps";
+import type { Answer } from "../../domain/expedition";
 
 import { DraMiraAvatar } from "../../components/DraMiraAvatar/DraMiraAvatar";
 import tabelaClassificacao from "../../assets/tabela_tela3.svg";
 import formaDecorativa from "../../assets/forma-decorativa.svg";
-import "./style.css";
+import "./Classification.css";
 
 const objects = [
   { id: "folha", name: "Folha de papel" },

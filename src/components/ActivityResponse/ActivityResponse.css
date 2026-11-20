@@ -1,0 +1,17 @@
+.activity-options { display: grid; min-width: 0; gap: 8px; padding: 0; border: 0; }
+.activity-options legend { margin-block-end: 12px; font-weight: 900; }
+
+.activity-options label {
+  display: flex;
+  align-items: center;
+  min-height: 46px;
+  gap: 9px;
+  padding: 9px 12px;
+  border: 2px solid #84948d;
+  border-radius: 10px;
+  background: #eaf5f0;
+  cursor: pointer;
+}
+
+.activity-options label[data-selected="true"] { border-color: #422cb0; background: #ede8ff; }
+.activity-options input { flex: 0 0 auto; }

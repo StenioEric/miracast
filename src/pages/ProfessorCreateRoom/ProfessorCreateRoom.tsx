@@ -1,5 +1,6 @@
 import type { FormEvent } from "react";
 import { ProfessorLayout } from "../../components/ProfessorLayout/ProfessorLayout";
+import "./ProfessorCreateRoom.css";
 
 type ProfessorCreateRoomProps = {
   onBackToDashboard: () => void;

@@ -1,7 +1,8 @@
 import { ProfessorLayout } from "../../components/ProfessorLayout/ProfessorLayout";
-import { activities, activityProgress, scoreSummary } from "../../features/expedition/steps";
-import type { ExpeditionStep } from "../../features/expedition/steps";
-import type { Participant, Room } from "../../features/rooms/rooms";
+import { activities, activityProgress, scoreSummary } from "../../domain/expedition";
+import type { ExpeditionStep } from "../../domain/expedition";
+import type { Participant, Room } from "../../services/rooms";
+import "./ProfessorRoom.css";
 
 type ProfessorRoomProps = {
   room: Room;

@@ -2,7 +2,7 @@ import type { ReactElement } from "react";
 
 import { DraMiraAvatar } from "../../components/DraMiraAvatar/DraMiraAvatar";
 import formaDecorativa from "../../assets/forma-decorativa.svg";
-import "./style.css";
+import "./Protocol.css";
 
 const questions = [
   "O objeto/molécula ocupa três dimensões simultaneamente (largura, altura, profundidade)?",

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { activities, activityProgress, expeditionSteps, nextStep, scoreSummary } from "../src/features/expedition/steps.ts";
-import { createRoomStore } from "../src/features/rooms/rooms.ts";
+import { activities, activityProgress, expeditionSteps, nextStep, scoreSummary } from "../src/domain/expedition.ts";
+import { createRoomStore } from "../src/services/rooms.ts";
 
 const requiredFrames = [
   "2003:131", "2003:91", "2003:54", "2003:2", "2003:914", "2003:798",

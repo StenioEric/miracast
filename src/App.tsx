@@ -1,13 +1,14 @@
 import { useEffect, useState } from "react";
 
-import { ActivityScreen } from "./features/expedition/ActivityScreen";
-import type { Answer, ExpeditionStep } from "./features/expedition/steps";
-import { browserRoomStore, subscribeToRooms } from "./features/rooms/rooms";
+import type { Answer, ExpeditionStep } from "./domain/expedition";
+import { ActivityRoutes } from "./navigation/ActivityRoutes";
+import { browserRoomStore, subscribeToRooms } from "./services/rooms";
 import { ExpeditionEntry } from "./pages/ExpeditionEntry/ExpeditionEntry";
 import { Motivation } from "./pages/Motivation/Motivation";
 import { Protocol } from "./pages/Protocol/Protocol";
 import { Classification } from "./pages/Classification/Classification";
 import { WaitingRoom } from "./pages/WaitingRoom/WaitingRoom";
+import { SessaoIndisponivel } from "./pages/SessaoIndisponivel/SessaoIndisponivel";
 import { Start } from "./pages/Start/Start";
 import { ProfessorLogin } from "./pages/ProfessorLogin/ProfessorLogin";
 import { ProfessorDashboard } from "./pages/ProfessorDashboard/ProfessorDashboard";
@@ -112,9 +113,9 @@ function App() {
           onViewRoom={() => goTo({ id: "room", roomCode: room.code })}
           onStart={() => run(() => browserRoomStore().startRoom(room.code))}
           onBackToDashboard={() => goTo({ id: "dashboard" })}
-        /> : <Unavailable onBack={() => goTo({ id: "dashboard" })} />;
+        /> : <SessaoIndisponivel onBack={() => goTo({ id: "dashboard" })} />;
       case "student":
-        if (!participant || !room) return <Unavailable onBack={returnHome} />;
+        if (!participant || !room) return <SessaoIndisponivel onBack={returnHome} />;
         if (!room.started) return <WaitingRoom
           participantName={participant.name}
           participantCount={storage?.participants(room.code).length ?? 0}
@@ -129,7 +130,7 @@ function App() {
           case "classification":
             return <Classification onContinue={(answer) => advance("classification", answer)} />;
           default:
-            return <ActivityScreen key={participant.step} step={participant.step} answers={participant.answers}
+            return <ActivityRoutes step={participant.step} answers={participant.answers}
               studentName={participant.name} onContinue={(answer) => advance(participant.step, answer)} onFinish={returnHome} />;
         }
     }
@@ -140,7 +141,7 @@ function App() {
   try {
     content = renderScreen();
   } catch {
-    content = <Unavailable onBack={returnHome} />;
+    content = <SessaoIndisponivel onBack={returnHome} />;
     readError = "Os dados locais da expedição não puderam ser carregados.";
   }
 
@@ -158,13 +159,6 @@ function readStorage() {
   } catch {
     return null;
   }
-}
-
-function Unavailable({ onBack }: { onBack: () => void }) {
-  return <main className="unavailable">
-    <h1>Sala ou sessão indisponível</h1>
-    <button type="button" onClick={onBack}>Voltar</button>
-  </main>;
 }
 
 export default App;

@@ -1,5 +1,6 @@
 import { ProfessorLayout } from "../../components/ProfessorLayout/ProfessorLayout";
-import type { Room } from "../../features/rooms/rooms";
+import type { Room } from "../../services/rooms";
+import "./ProfessorDashboard.css";
 
 type ProfessorDashboardProps = {
   rooms: (Room & { participantCount: number })[];

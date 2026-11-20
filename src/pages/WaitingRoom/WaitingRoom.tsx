@@ -1,5 +1,5 @@
 import decoration from "../../assets/forma-decorativa.svg";
-import "./style.css";
+import "./WaitingRoom.css";
 
 type WaitingRoomProps = {
   participantName: string;

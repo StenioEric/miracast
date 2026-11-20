@@ -3,7 +3,7 @@ import type { ReactElement } from "react";
 import { DraMiraAvatar } from "../../components/DraMiraAvatar/DraMiraAvatar";
 import formaDecorativa from "../../assets/forma-decorativa.svg";
 import limoneno from "../../assets/limoneno.svg";
-import "./style.css";
+import "./Motivation.css";
 
 type MotivationProps = {
   onStartProtocol: () => void;

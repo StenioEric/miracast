@@ -24,11 +24,10 @@ O código identifica uma sala armazenada na origem da aplicação. Salas, partic
 
 ## Organização
 
-- `src/pages/` contém as telas de entrada, preparação do aluno e professor, além das duas primeiras missões.
-- `src/features/expedition/steps.ts` define as 18 etapas na ordem de avanço. Os frames `2003:865` e `2003:1089` são estados internos da montagem e da sobreposição.
-- `src/features/expedition/` contém verificações objetivas, respostas escritas, modelos moleculares vetoriais rotacionáveis e feedback. As respostas abertas podem ser lidas pelo professor e ficam fora da pontuação automática.
-- `src/features/rooms/rooms.ts` reúne as operações de sala, registro de participantes, avanço e persistência. A interface usa essas operações em vez de escrever os registros diretamente.
-- `src/components/ProfessorLayout/` concentra o layout visual da área do professor. As atividades compartilham controles de resposta e classes de layout.
+- `src/pages/` contém as telas. Cada página tem uma pasta com os arquivos TSX e CSS de mesmo nome. Os frames `2003:865` e `2003:1089` aparecem como estados internos da montagem e da sobreposição.
+- `src/navigation/ActivityRoutes.tsx` associa os IDs das 18 atividades às páginas. `src/domain/expedition.ts` define a ordem de avanço e o cálculo da pontuação.
+- `src/components/` contém os layouts compartilhados, campos de resposta e modelos moleculares. As respostas abertas podem ser lidas pelo professor e ficam fora da pontuação automática.
+- `src/services/rooms.ts` reúne as operações de sala, registro de participantes, avanço e persistência. A interface usa essas operações para gravar os registros.
 
 ## Verificar
 
