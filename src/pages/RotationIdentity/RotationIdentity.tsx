@@ -19,7 +19,7 @@ const supportIdeas = [
 ];
 
 export const RotationIdentity = ({
-//   onContinue,
+  onContinue,
 }: RotationIdentityProps): ReactElement => {
   const [answer, setAnswer] = useState("");
   const [selectedIdeas, setSelectedIdeas] = useState<string[]>([]);
@@ -122,7 +122,7 @@ export const RotationIdentity = ({
             {submitted ? (
               <button
                 className="girar-identidade__enviar"
-                // onClick={onContinue}
+                onClick={onContinue}
                 type="button"
               >
                 CONTINUAR
