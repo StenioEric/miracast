@@ -1,82 +1,61 @@
 import { useState } from "react";
-import type { ReactElement } from "react";
-
 import { DraMiraAvatar } from "../../components/DraMiraAvatar/DraMiraAvatar";
-import formaDecorativa from "../../assets/forma-decorativa.svg";
+import decoration from "../../assets/forma-decorativa.svg";
+import { projectPoint } from "../../features/expedition/moleculeGeometry";
+import { ChoiceQuestion } from "../../features/expedition/Response";
+import type { Answer } from "../../features/expedition/steps";
 import "./style.css";
 
-const answers = [
-  "A. Sim — ficou com aparência diferente, então é outra figura",
-  "B. Não — permaneceu a mesma pirâmide, apenas em outra posição",
-  "C. Sim — girar sempre cria um objeto novo",
-  "D. Depende do ângulo em que eu paro de girar",
-];
+const vertices = [[0, 1, 0], [-1, -0.7, -1], [1, -0.7, -1], [1, -0.7, 1], [-1, -0.7, 1]] as const;
+const faces = [[0, 1, 2], [0, 2, 3], [0, 3, 4], [0, 4, 1]];
+const faceColors = ["#ffaf2b", "#ffcb63", "#f58b22", "#ffe1a6"];
 
-export const AxisRotation = (): ReactElement => {
-  const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
+export function AxisRotation({ onContinue }: { onContinue: (answer: Answer) => void }) {
+  const [angle, setAngle] = useState(28);
+  const points = vertices.map((point) => projectPoint(point, angle, -16));
+  const polygons = faces.map((face, index) => ({
+    index,
+    points: face.map((vertex) => points[vertex]),
+    depth: face.reduce((total, vertex) => total + points[vertex][2], 0),
+  })).sort((left, right) => left.depth - right.depth);
 
   return (
-    <main className="eixo-rotacao" data-node-id="2003:91">
-      <div className="eixo-rotacao__shell">
-        <img
-          className="eixo-rotacao__forma eixo-rotacao__forma--superior"
-          src={formaDecorativa}
-          alt=""
-          aria-hidden="true"
-        />
-        <img
-          className="eixo-rotacao__forma eixo-rotacao__forma--inferior"
-          src={formaDecorativa}
-          alt=""
-          aria-hidden="true"
-        />
-
-        <div className="eixo-rotacao__etapa">Ação Material Concreta · Tela 5</div>
-        <h1 className="eixo-rotacao__titulo">MISSÃO 1.3 - O EIXO DE ROTAÇÃO</h1>
-
-        <section className="eixo-rotacao__orientacao" aria-label="Orientação da Dra. Mira">
-          <DraMiraAvatar className="eixo-rotacao__avatar" />
-          <div className="eixo-rotacao__fala">
-            <p className="eixo-rotacao__nome">DRA. MIRA</p>
-            <p>Gire esta pirâmide em torno do seu eixo. A figura mudou de forma?</p>
-          </div>
+    <main className="activity eixo-rotacao" data-node-id="2003:91">
+      <div className="activity__shell">
+        <img className="activity__decoration" src={decoration} alt="" />
+        <header className="activity__header">
+          <p>Ação Material Concreta · Tela 5</p>
+          <h1>MISSÃO 1.3 - O EIXO DE ROTAÇÃO</h1>
+        </header>
+        <aside className="activity__guide" aria-label="Orientação da Dra. Mira">
+          <DraMiraAvatar />
+          <p><strong>Dra. Mira</strong><br />Gire a pirâmide em torno do eixo. Observe o que muda.</p>
+        </aside>
+        <section className="activity-card">
+          <svg viewBox="0 0 240 200" role="img" aria-label="Pirâmide ajustável em torno do eixo vertical">
+            {polygons.map((polygon) => <polygon key={polygon.index}
+              points={polygon.points.map(([x, y]) => `${120 + x * 42},${101 - y * 42}`).join(" ")}
+              fill={faceColors[polygon.index]} stroke="#623719" strokeWidth={2} />)}
+            <line x1={120} y1={20} x2={120} y2={178} stroke="#282c29" strokeWidth={2} strokeDasharray="4 4" />
+            <text x={128} y={27}>Eixo</text>
+          </svg>
+          <label className="activity-field">
+            Ângulo de rotação
+            <input type="range" min={0} max={360} value={angle} onChange={(event) => setAngle(Number(event.target.value))} />
+          </label>
         </section>
-
-        <section className="eixo-rotacao__cartao" aria-labelledby="eixo-rotacao-pergunta">
-          <h2 id="eixo-rotacao-pergunta">
-            Ao girar a pirâmide em torno do seu eixo, ela mudou de forma?
-          </h2>
-          <div className="eixo-rotacao__divisor" />
-          <div className="eixo-rotacao__diagrama" role="img" aria-label="Pirâmide girando em torno de um eixo vertical">
-            <span className="eixo-rotacao__arco" aria-hidden="true">↻</span>
-            <div className="eixo-rotacao__piramide">
-              <span className="eixo-rotacao__face eixo-rotacao__face--traseira" />
-              <span className="eixo-rotacao__face eixo-rotacao__face--frontal" />
-              <span className="eixo-rotacao__aresta" />
-            </div>
-            <span className="eixo-rotacao__linha-eixo" />
-            <span className="eixo-rotacao__rotulo-eixo">Eixo</span>
-          </div>
-        </section>
-
-        <div className="eixo-rotacao__respostas" role="group" aria-label="Escolha uma resposta">
-          {answers.map((answer, index) => (
-            <button
-              aria-pressed={selectedAnswer === index}
-              className={
-                selectedAnswer === index
-                  ? "eixo-rotacao__resposta eixo-rotacao__resposta--selecionada"
-                  : "eixo-rotacao__resposta"
-              }
-              key={answer}
-              onClick={() => setSelectedAnswer(index)}
-              type="button"
-            >
-              {answer}
-            </button>
-          ))}
-        </div>
+        <ChoiceQuestion onContinue={onContinue} question={{
+          prompt: "Ao girar em torno do seu eixo, a pirâmide mudou de forma?",
+          options: [
+            "Sim, a aparência diferente indica outra figura.",
+            "Não, a pirâmide é a mesma em outra orientação.",
+            "Sim, girar sempre cria um objeto novo.",
+            "Depende do ângulo em que eu parar.",
+          ],
+          correct: 1,
+          explanation: "A rotação altera a orientação da pirâmide. A forma e a identidade permanecem iguais.",
+        }} />
       </div>
     </main>
   );
-};
+}

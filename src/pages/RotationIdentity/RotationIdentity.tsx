@@ -1,12 +1,13 @@
 import { useState } from "react";
 import type { FormEvent, ReactElement } from "react";
+import type { Answer } from "../../features/expedition/steps";
 
 import { DraMiraAvatar } from "../../components/DraMiraAvatar/DraMiraAvatar";
 import formaDecorativa from "../../assets/forma-decorativa.svg";
 import "./style.css";
 
 type RotationIdentityProps = {
-  onContinue: () => void;
+  onContinue: (answer: Answer) => void;
 };
 
 const supportIdeas = [
@@ -37,6 +38,11 @@ export const RotationIdentity = ({
         : [...selected, idea],
     );
   };
+
+  function continueActivity() {
+    const ideas = selectedIdeas.length ? `\nIdeias de apoio: ${selectedIdeas.join(", ")}` : "";
+    onContinue({ value: answer.trim() + ideas });
+  }
 
   return (
     <main className="girar-identidade" data-node-id="2003:131">
@@ -73,7 +79,7 @@ export const RotationIdentity = ({
         </section>
 
         <section className="girar-identidade__cartao" aria-label="Pergunta sobre rotação">
-          <div className="girar-identidade__cubo-area" aria-label="Cubo girando">
+          <div className="girar-identidade__cubo-area" role="img" aria-label="Cubo girando">
             <div className="girar-identidade__cubo">
               <span className="girar-identidade__face girar-identidade__face--traseira" />
               <span className="girar-identidade__face girar-identidade__face--superior" />
@@ -94,6 +100,7 @@ export const RotationIdentity = ({
                   setSubmitted(false);
                 }}
                 placeholder="Escreva sua resposta..."
+                maxLength={2000}
                 required
               />
             </label>
@@ -122,7 +129,7 @@ export const RotationIdentity = ({
             {submitted ? (
               <button
                 className="girar-identidade__enviar"
-                onClick={onContinue}
+                onClick={continueActivity}
                 type="button"
               >
                 CONTINUAR
