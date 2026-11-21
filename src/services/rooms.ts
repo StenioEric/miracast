@@ -1,4 +1,4 @@
-import { nextStep } from "../domain/expedition.ts";
+import { expeditionSteps, nextStep } from "../domain/expedition.ts";
 import type { Answer, ExpeditionStep } from "../domain/expedition.ts";
 
 const prefix = "miracast:v1:";
@@ -16,16 +16,37 @@ export type Participant = {
 
 type Storage = Pick<globalThis.Storage, "getItem" | "setItem" | "key" | "length">;
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
+function isRoom(value: unknown): value is Room {
+  return isRecord(value) && typeof value.code === "string" && typeof value.name === "string"
+    && typeof value.started === "boolean";
+}
+
+function isAnswer(value: unknown): value is Answer {
+  return isRecord(value) && typeof value.value === "string"
+    && (value.correct === undefined || typeof value.correct === "boolean");
+}
+
+function isParticipant(value: unknown): value is Participant {
+  return isRecord(value) && typeof value.id === "string" && typeof value.roomCode === "string"
+    && typeof value.name === "string" && expeditionSteps.some((step) => step === value.step)
+    && isRecord(value.answers) && Object.values(value.answers).every(isAnswer);
+}
+
 export function normalizeRoomCode(code: string) {
   return code.trim().toUpperCase();
 }
 
 export function createRoomStore(storage: Storage, notify: () => void = () => {}) {
-  const read = <T,>(key: string): T | null => {
+  const read = <T,>(key: string, isValid: (value: unknown) => value is T): T | null => {
     const value = storage.getItem(key);
     if (!value) return null;
     try {
-      return JSON.parse(value) as T;
+      const parsed: unknown = JSON.parse(value);
+      return isValid(parsed) ? parsed : null;
     } catch {
       return null;
     }
@@ -34,18 +55,18 @@ export function createRoomStore(storage: Storage, notify: () => void = () => {})
     storage.setItem(key, JSON.stringify(value));
     notify();
   };
-  const all = <T,>(keyPrefix: string): T[] =>
+  const all = <T,>(keyPrefix: string, isValid: (value: unknown) => value is T): T[] =>
     Array.from({ length: storage.length }, (_, index) => storage.key(index))
       .filter((key): key is string => key !== null && key.startsWith(keyPrefix))
       .flatMap((key) => {
-        const value = read<T>(key);
+        const value = read(key, isValid);
         return value ? [value] : [];
       });
 
-  const getRoom = (code: string) => read<Room>(prefix + "room:" + normalizeRoomCode(code));
-  const getParticipant = (id: string) => read<Participant>(prefix + "participant:" + id);
+  const getRoom = (code: string) => read(prefix + "room:" + normalizeRoomCode(code), isRoom);
+  const getParticipant = (id: string) => read(prefix + "participant:" + id, isParticipant);
   const participants = (roomCode: string) =>
-    all<Participant>(prefix + "participant:").filter((participant) => participant.roomCode === roomCode);
+    all(prefix + "participant:", isParticipant).filter((participant) => participant.roomCode === roomCode);
 
   function createRoom(name: string, randomCode = generateRoomCode): Room {
     if (!name.trim()) throw new Error("Informe um nome para a sala.");
@@ -95,7 +116,7 @@ export function createRoomStore(storage: Storage, notify: () => void = () => {})
     getRoom,
     getParticipant,
     participants,
-    rooms: () => all<Room>(prefix + "room:"),
+    rooms: () => all(prefix + "room:", isRoom),
     createRoom,
     startRoom,
     joinRoom,

@@ -50,5 +50,5 @@ const activityPages: Record<ActivityId, ComponentType<ActivityPageProps>> = {
 
 export function ActivityRoutes({ step, ...props }: ActivityPageProps & { step: ActivityId }) {
   const Page = activityPages[step];
-  return Page ? <Page key={step} {...props} /> : null;
+  return <Page key={step} {...props} />;
 }

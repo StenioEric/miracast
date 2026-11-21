@@ -77,3 +77,29 @@ test("calcula pontuação apenas com respostas objetivamente avaliadas", () => {
     "explain-chirality": { value: "Resposta aberta" },
   }), { correct: 1, total: 2 });
 });
+
+test("preserva registros válidos ao encontrar salas e participantes malformados", () => {
+  const storage = memoryStorage();
+  const store = createRoomStore(storage);
+  const room = store.createRoom("Turma A", () => "ABC234");
+  const participant = store.joinRoom(room.code, "Ana");
+  store.startRoom(room.code);
+  store.advance(participant.id, "motivation");
+
+  storage.setItem("miracast:v1:room:XYZ234", JSON.stringify({ code: "XYZ234", name: "Sala incompleta" }));
+  storage.setItem("miracast:v1:participant:unknown-step", JSON.stringify({
+    ...participant, id: "unknown-step", step: "etapa-inexistente",
+  }));
+  storage.setItem("miracast:v1:participant:invalid-answer", JSON.stringify({
+    ...participant, id: "invalid-answer", answers: { qv1: null },
+  }));
+  storage.setItem("miracast:v1:participant:invalid-json", "{");
+
+  const restored = createRoomStore(storage);
+  assert.equal(restored.getRoom("XYZ234"), null);
+  assert.deepEqual(restored.rooms(), [{ ...room, started: true }]);
+  assert.equal(restored.getParticipant("unknown-step"), null);
+  assert.equal(restored.getParticipant("invalid-answer"), null);
+  assert.equal(restored.getParticipant("invalid-json"), null);
+  assert.deepEqual(restored.participants(room.code), [{ ...participant, step: "protocol" }]);
+});

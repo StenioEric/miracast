@@ -15,19 +15,39 @@ import { ProfessorDashboard } from "./pages/ProfessorDashboard/ProfessorDashboar
 import { ProfessorCreateRoom } from "./pages/ProfessorCreateRoom/ProfessorCreateRoom";
 import { ProfessorRoom } from "./pages/ProfessorRoom/ProfessorRoom";
 
-type Screen =
-  | { id: "start" | "entry" | "professor-login" | "dashboard" | "create-room" }
-  | { id: "student"; participantId: string }
+type ProfessorScreen =
+  | { id: "professor-login" | "dashboard" | "create-room" }
   | { id: "room"; roomCode: string; created?: boolean };
 
-const sessionKey = "miracast:active-participant";
+type Screen =
+  | ProfessorScreen
+  | { id: "start" | "entry" }
+  | { id: "student"; participantId: string };
+
+const participantSessionKey = "miracast:active-participant";
+const professorSessionKey = "miracast:professor-screen";
+
+function isProfessorScreen(value: unknown): value is ProfessorScreen {
+  if (!value || typeof value !== "object" || !("id" in value)) return false;
+  switch (value.id) {
+    case "professor-login":
+    case "dashboard":
+    case "create-room":
+      return true;
+    case "room":
+      return "roomCode" in value && typeof value.roomCode === "string"
+        && (!("created" in value) || typeof value.created === "boolean");
+    default:
+      return false;
+  }
+}
 
 function initialScreen(): Screen {
   try {
-    const participantId = sessionStorage.getItem(sessionKey);
-    if (participantId && browserRoomStore().getParticipant(participantId)) {
-      return { id: "student", participantId };
-    }
+    const participantId = sessionStorage.getItem(participantSessionKey);
+    if (participantId) return { id: "student", participantId };
+    const savedScreen: unknown = JSON.parse(sessionStorage.getItem(professorSessionKey) ?? "null");
+    if (isProfessorScreen(savedScreen)) return savedScreen;
   } catch {
     // A página inicial continua disponível com o armazenamento bloqueado.
   }
@@ -40,11 +60,7 @@ function App() {
   const [, setStorageRevision] = useState(0);
   useEffect(() => subscribeToRooms(() => setStorageRevision((revision) => revision + 1)), []);
 
-  const storage = readStorage();
-  const participant = screen.id === "student" ? storage?.getParticipant(screen.participantId) : null;
-  const room = screen.id === "room"
-    ? storage?.getRoom(screen.roomCode)
-    : participant && storage?.getRoom(participant.roomCode);
+  const { storage, participant, room } = readRoomState(screen);
   const visibleStep = room?.started ? participant?.step : undefined;
 
   useEffect(() => {
@@ -54,6 +70,15 @@ function App() {
   function goTo(target: Screen) {
     setError("");
     setScreen(target);
+    try {
+      if (isProfessorScreen(target)) {
+        sessionStorage.setItem(professorSessionKey, JSON.stringify(target));
+      } else {
+        sessionStorage.removeItem(professorSessionKey);
+      }
+    } catch {
+      // A navegação da aba continua disponível sem retomar a tela ao recarregar.
+    }
   }
 
   function run(action: () => void) {
@@ -66,10 +91,12 @@ function App() {
   }
 
   function returnHome() {
-    run(() => {
-      sessionStorage.removeItem(sessionKey);
-      goTo({ id: "start" });
-    });
+    goTo({ id: "start" });
+    try {
+      sessionStorage.removeItem(participantSessionKey);
+    } catch {
+      // O botão de voltar continua disponível com o armazenamento bloqueado.
+    }
   }
 
   function advance(step: ExpeditionStep, answer?: Answer) {
@@ -83,9 +110,9 @@ function App() {
       case "entry":
         return <ExpeditionEntry onBack={returnHome} onJoin={(code, name) => run(() => {
           // Testa a disponibilidade da sessão antes de criar o registro local.
-          sessionStorage.setItem(sessionKey, "");
+          sessionStorage.setItem(participantSessionKey, "");
           const joined = browserRoomStore().joinRoom(code, name);
-          sessionStorage.setItem(sessionKey, joined.id);
+          sessionStorage.setItem(participantSessionKey, joined.id);
           goTo({ id: "student", participantId: joined.id });
         })} />;
       case "professor-login":
@@ -153,11 +180,16 @@ function App() {
   </>;
 }
 
-function readStorage() {
+function readRoomState(screen: Screen) {
   try {
-    return browserRoomStore();
+    const storage = browserRoomStore();
+    const participant = screen.id === "student" ? storage.getParticipant(screen.participantId) : null;
+    const room = screen.id === "room"
+      ? storage.getRoom(screen.roomCode)
+      : participant && storage.getRoom(participant.roomCode);
+    return { storage, participant, room };
   } catch {
-    return null;
+    return { storage: null, participant: null, room: null };
   }
 }
 
