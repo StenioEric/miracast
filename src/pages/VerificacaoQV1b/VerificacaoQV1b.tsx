@@ -6,7 +6,7 @@ import type { Answer } from "../../domain/expedition";
 import "./VerificacaoQV1b.css";
 
 const question: Question = {
-  prompt: "Uma imagem no espelho pode ser obtida girando o objeto original?",
+  prompt: "A imagem no espelho de um objeto quiral pode ser obtida girando o objeto original?",
   options: [
     "Sim — basta girar o objeto até que ele coincida",
     "Não — objetos quirais não podem ser sobrepostos à imagem especular",

@@ -48,7 +48,7 @@ export function MonteCHClBrF({
   function continueActivity() {
     if (!complete || !selectedAnswer) return;
     onContinue({
-      value: ligands.join(", "),
+      value: `${ligands.join(", ")}\n${selectedAnswer.value}`,
       correct: selectedAnswer.correct,
     });
   }

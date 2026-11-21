@@ -21,7 +21,7 @@ export function IdentifiqueQuiral({ onContinue }: { onContinue: (answer: Answer)
     <GuidedActivity
       className="identifique-quiral"
       frame="2003:709"
-      stage="Atividade de identificação · Carão central quiral"
+      stage="Atividade de identificação · Carbono central quiral"
       title="IDENTIFIQUE O QUIRAL"
       guidance="Observe os três modelos. Identifique aquele que tem um carbono ligado a quatro grupos diferentes."
     >
