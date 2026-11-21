@@ -1,7 +1,10 @@
-import { ProfessorLayout } from "../../components/ProfessorLayout/ProfessorLayout";
-import { activities, activityProgress, scoreSummary } from "../../domain/expedition";
 import type { ExpeditionStep } from "../../domain/expedition";
 import type { Participant, Room } from "../../services/rooms";
+import { Button } from "../../components/Button/Button";
+import { ContentCard } from "../../components/ContentCard/ContentCard";
+import { ProfessorLayout } from "../../components/ProfessorLayout/ProfessorLayout";
+import { ProgressIndicator } from "../../components/ProgressIndicator/ProgressIndicator";
+import { activities, activityProgress, scoreSummary } from "../../domain/expedition";
 import "./ProfessorRoom.css";
 
 type ProfessorRoomProps = {
@@ -20,22 +23,24 @@ export function ProfessorRoom({ room, participants, created, onViewRoom, onStart
     : null;
 
   return (
-    <ProfessorLayout frame={created ? "2020:44" : participants.length ? "2020:72" : "2020:58"}>
-      <section className="professor__panel">
-        <h1>{created ? "Sala criada" : room.name}</h1>
+    <ProfessorLayout frame={created ? "2020:44" : participants.length ? "2020:72" : "2020:58"}
+      title={created ? "Sala criada" : room.name}
+      navigation={<Button variant="link" onClick={onBackToDashboard}>Voltar ao painel</Button>}
+    >
+      <ContentCard>
         {created && <p>{room.name}</p>}
         <p>Código da sala</p>
         <output className="professor__code" aria-label="Código da sala">{room.code}</output>
         {created ? <>
           <p>Compartilhe o código com os alunos.</p>
-          <button className="flow-button" type="button" onClick={onViewRoom}>Acessar sala</button>
+          <Button onClick={onViewRoom}>Acessar sala</Button>
         </> : <>
           <p role="status">{room.started ? "Expedição iniciada" : "Aguardando início"}</p>
-          {!room.started && <button className="flow-button" type="button" onClick={onStart}>Iniciar expedição</button>}
+          {!room.started && <Button onClick={onStart}>Iniciar expedição</Button>}
         </>}
-      </section>
+      </ContentCard>
 
-      {!created && <section className="professor__panel">
+      {!created && <ContentCard>
         <h2>Alunos e progresso</h2>
         {average !== null && <p>Média nas respostas avaliadas: {average}%</p>}
         {participants.length ? <ul className="professor__list">
@@ -45,7 +50,7 @@ export function ProfessorRoom({ room, participants, created, onViewRoom, onStart
             return <li key={participant.id}>
               <h3>{participant.name}</h3>
               <p>{room.started ? stepTitle(participant.step) : "Na sala de espera"}</p>
-              <progress value={progress.completed} max={progress.total} aria-label="Atividades concluídas" />
+              <ProgressIndicator {...progress} label="Atividades concluídas" />
               <p>{progress.completed} de {progress.total} atividades · {score.correct} de {score.total} respostas corretas</p>
               {Object.entries(participant.answers).length > 0 && <details>
                 <summary>Respostas registradas</summary>
@@ -61,9 +66,7 @@ export function ProfessorRoom({ room, participants, created, onViewRoom, onStart
             </li>;
           })}
         </ul> : <p>Nenhum aluno entrou ainda.</p>}
-      </section>}
-
-      <button className="flow-link" type="button" onClick={onBackToDashboard}>Voltar ao painel</button>
+      </ContentCard>}
     </ProfessorLayout>
   );
 }

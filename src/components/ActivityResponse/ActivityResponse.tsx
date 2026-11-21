@@ -2,6 +2,9 @@ import { useId, useRef, useState } from "react";
 import type { ReactNode } from "react";
 
 import type { Answer } from "../../domain/expedition";
+import { Button } from "../Button/Button";
+import { ContentCard } from "../ContentCard/ContentCard";
+import { PageFooter } from "../PageLayout/PageLayout";
 import "./ActivityResponse.css";
 
 export type Question = {
@@ -16,7 +19,6 @@ type ChoiceQuestionProps = {
   onContinue: (answer: Answer) => void;
   onEvaluate?: (correct: boolean) => void;
   requireCorrect?: boolean;
-  className?: string;
   illustration?: ReactNode;
   verifyLabel?: string;
   continueLabel?: string;
@@ -28,7 +30,6 @@ export function ChoiceQuestion({
   onContinue,
   onEvaluate,
   requireCorrect,
-  className = "activity-card",
   illustration,
   verifyLabel = "Verificar resposta",
   continueLabel = "Continuar",
@@ -60,8 +61,8 @@ export function ChoiceQuestion({
   }
 
   return (
-    <div className={`choice-question ${className}`.trim()}>
-      <div className="choice-question__content">
+    <div className="choice-question">
+      <ContentCard>
         {illustration}
         <fieldset ref={optionsRef} className="activity-options" disabled={submitted}>
           <legend>{question.prompt}</legend>
@@ -85,10 +86,10 @@ export function ChoiceQuestion({
             </p>
           )}
         </div>
-      </div>
-      <button className="flow-button" type="button" disabled={selected === null} onClick={handleAction}>
-        {actionLabel}
-      </button>
+      </ContentCard>
+      <PageFooter>
+        <Button disabled={selected === null} onClick={handleAction}>{actionLabel}</Button>
+      </PageFooter>
     </div>
   );
 }

@@ -1,0 +1,14 @@
+.expedition-progress {
+  display: block;
+  width: min(100%, 20rem);
+  height: .625rem;
+  border: 0;
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+  background: var(--surface-muted);
+  accent-color: var(--purple);
+}
+
+.expedition-progress::-webkit-progress-bar { background: var(--surface-muted); }
+.expedition-progress::-webkit-progress-value { background: var(--purple); }
+.expedition-progress::-moz-progress-bar { background: var(--purple); }

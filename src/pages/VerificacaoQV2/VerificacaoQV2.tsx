@@ -1,8 +1,7 @@
-import { ChoiceQuestion } from "../../components/ActivityResponse/ActivityResponse";
-import type { Question } from "../../components/ActivityResponse/ActivityResponse";
-import { GuidedActivity } from "../../components/GuidedActivity/GuidedActivity";
-import { activityProgress } from "../../domain/expedition";
 import type { Answer } from "../../domain/expedition";
+import type { Question } from "../../components/ActivityResponse/ActivityResponse";
+import { ActivityLayout } from "../../components/ActivityLayout/ActivityLayout";
+import { ChoiceQuestion } from "../../components/ActivityResponse/ActivityResponse";
 import "./VerificacaoQV2.css";
 
 const question: Question = {
@@ -17,22 +16,18 @@ const question: Question = {
 };
 
 export function VerificacaoQV2({ onContinue }: { onContinue: (answer: Answer) => void }) {
-  const { completed, total } = activityProgress("qv2");
 
   return (
-    <GuidedActivity
-      className="verificacao-qv2 guided-activity--purple guided-activity--large guided-activity--orange"
+    <ActivityLayout
+      step="qv2"
       frame="2003:670"
       stage="Verificação · Tela 11"
-      title="VERIFICAÇÃO Q.V2"
       guidance="Quatro moléculas. Qual possui um carbono quiral?"
     >
-      <progress value={completed} max={total} aria-label="Progresso da expedição" />
       <ChoiceQuestion
-        className=""
         question={question}
         onContinue={onContinue}
       />
-    </GuidedActivity>
+    </ActivityLayout>
   );
 }

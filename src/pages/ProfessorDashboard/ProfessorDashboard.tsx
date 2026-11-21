@@ -1,5 +1,7 @@
-import { ProfessorLayout } from "../../components/ProfessorLayout/ProfessorLayout";
 import type { Room } from "../../services/rooms";
+import { Button } from "../../components/Button/Button";
+import { ContentCard } from "../../components/ContentCard/ContentCard";
+import { ProfessorLayout } from "../../components/ProfessorLayout/ProfessorLayout";
 import "./ProfessorDashboard.css";
 
 type ProfessorDashboardProps = {
@@ -11,22 +13,23 @@ type ProfessorDashboardProps = {
 
 export function ProfessorDashboard({ rooms, onCreateRoom, onOpenRoom, onBack }: ProfessorDashboardProps) {
   return (
-    <ProfessorLayout frame="2020:16">
-      <section className="professor__panel">
-        <h1>Minhas salas</h1>
+    <ProfessorLayout frame="2020:16"
+      title="Minhas salas"
+      navigation={<Button variant="link" onClick={onBack}>Voltar à seleção de perfil</Button>}
+    >
+      <ContentCard>
         {rooms.length ? <ul className="professor__list">
           {rooms.map((room) => (
             <li key={room.code}>
               <h2>{room.name}</h2>
               <p>Código: {room.code}</p>
               <p>{room.participantCount} {room.participantCount === 1 ? "aluno" : "alunos"} · {room.started ? "Em andamento" : "Aguardando início"}</p>
-              <button className="flow-link" type="button" onClick={() => onOpenRoom(room.code)}>Acessar {room.name}</button>
+              <Button variant="link" onClick={() => onOpenRoom(room.code)}>Acessar {room.name}</Button>
             </li>
           ))}
         </ul> : <p>Nenhuma sala criada.</p>}
-        <button className="flow-button" type="button" onClick={onCreateRoom}>Criar nova sala</button>
-      </section>
-      <button className="flow-link" type="button" onClick={onBack}>Voltar à seleção de perfil</button>
+        <Button onClick={onCreateRoom}>Criar nova sala</Button>
+      </ContentCard>
     </ProfessorLayout>
   );
 }

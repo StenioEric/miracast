@@ -1,60 +1,49 @@
-.activity {
-  min-height: 100svh;
-  background: #0d897d;
+.activity-guide {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+.activity-guide .dra-mira-avatar {
+  width: 3rem;
+  height: 3rem;
+  flex: 0 0 3rem;
+  border: var(--border-size) solid var(--ink);
+  background: var(--page-bg);
+  box-shadow: var(--shadow);
+  font-size: 1.5rem;
+}
+
+.activity-guide__message {
+  min-width: 0;
+  flex: 1;
+  padding: var(--space-3) var(--space-4);
+  border: var(--border-size) solid var(--ink);
+  border-radius: var(--radius-card);
+  background: var(--white);
+  box-shadow: var(--shadow);
   color: var(--ink);
-  font-family: var(--body-font);
 }
 
-.activity__shell {
-  position: relative;
-  display: grid;
-  gap: 18px;
-  width: min(100%, 680px);
-  min-height: 100svh;
+.activity-guide__name {
+  margin-bottom: var(--space-1);
+  color: var(--teal);
+  font-size: var(--font-small);
+  font-weight: 900;
+}
+
+.activity-illustration {
+  display: block;
+  width: min(100%, 24rem);
+  height: auto;
   margin-inline: auto;
-  padding: clamp(22px, 5vw, 40px) 18px 36px;
-  align-content: start;
-  overflow: hidden;
 }
 
-.activity__shell > :not(.activity__decoration) { position: relative; }
-
-.activity__decoration {
-  position: absolute;
-  top: -130px;
-  left: -115px;
-  width: 280px;
-  pointer-events: none;
-}
-
-.activity__header { color: #fffde9; text-align: center; }
-.activity__header h1, .activity__header p { margin: 0 0 8px; }
-.activity__header p { font-weight: 800; }
-.activity__header h1 { font: 400 clamp(1.8rem, 6vw, 2.6rem) "Staatliches", sans-serif; }
-
-.activity progress { width: 100%; max-width: 320px; accent-color: #422cb0; }
-
-.activity__guide { display: flex; align-items: center; gap: 10px; }
-.activity__guide p { flex: 1; margin: 0; padding: 10px; border-radius: 12px; background: #fff; }
-
-.activity-card {
+.activity-model {
   display: grid;
-  gap: 14px;
-  padding: clamp(14px, 4vw, 24px);
-  border: 3px solid var(--ink);
-  border-radius: 22px;
-  background: #fff;
-  box-shadow: 4px 5px 0 var(--ink);
+  place-items: center;
+  padding: var(--space-2);
+  border: var(--border-size) solid var(--border-muted);
+  border-radius: var(--radius-sm);
+  background: var(--option-bg);
 }
-
-.activity-card :where(h2, p, fieldset) { margin: 0; }
-.activity-card h2 { font-size: 1.2rem; }
-
-.activity-feedback {
-  padding: 11px 14px;
-  border-left: 4px solid #0b6a60;
-  border-radius: 8px;
-  background: #e0f5ec;
-}
-
-.activity-field { display: grid; gap: 6px; min-width: 0; }

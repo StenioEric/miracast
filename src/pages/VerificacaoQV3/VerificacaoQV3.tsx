@@ -1,7 +1,7 @@
-import { ChoiceQuestion } from "../../components/ActivityResponse/ActivityResponse";
-import type { Question } from "../../components/ActivityResponse/ActivityResponse";
-import { GuidedActivity } from "../../components/GuidedActivity/GuidedActivity";
 import type { Answer } from "../../domain/expedition";
+import type { Question } from "../../components/ActivityResponse/ActivityResponse";
+import { ActivityLayout } from "../../components/ActivityLayout/ActivityLayout";
+import { ChoiceQuestion } from "../../components/ActivityResponse/ActivityResponse";
 import "./VerificacaoQV3.css";
 
 const question: Question = {
@@ -18,18 +18,16 @@ const question: Question = {
 
 export function VerificacaoQV3({ onContinue }: { onContinue: (answer: Answer) => void }) {
   return (
-    <GuidedActivity
-      className="verificacao-qv3 guided-activity--purple guided-activity--orange"
+    <ActivityLayout
+      step="qv3"
       frame="2003:968"
       stage="Verificação · Tela 13"
-      title="VERIFICAÇÃO Q.V3"
       guidance="Quatro estudantes explicaram por que o CHClBrF e seu enantiômero não são a mesma molécula. Qual explicação está conceitualmente correta?"
     >
       <ChoiceQuestion
-        className="guided-activity__card"
         question={question}
         onContinue={onContinue}
       />
-    </GuidedActivity>
+    </ActivityLayout>
   );
 }

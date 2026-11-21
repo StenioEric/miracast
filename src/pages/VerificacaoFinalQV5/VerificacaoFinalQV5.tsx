@@ -1,7 +1,7 @@
+import type { Answer } from "../../domain/expedition";
+import type { Question } from "../../components/ActivityResponse/ActivityResponse";
 import { ActivityLayout } from "../../components/ActivityLayout/ActivityLayout";
 import { ChoiceQuestion } from "../../components/ActivityResponse/ActivityResponse";
-import type { Question } from "../../components/ActivityResponse/ActivityResponse";
-import type { Answer } from "../../domain/expedition";
 import "./VerificacaoFinalQV5.css";
 
 const question: Question = {

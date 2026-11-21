@@ -1,121 +1,74 @@
 import { useState } from "react";
-import type { ReactElement } from "react";
-import type { Answer } from "../../domain/expedition";
 
-import { DraMiraAvatar } from "../../components/DraMiraAvatar/DraMiraAvatar";
 import tabelaClassificacao from "../../assets/tabela_tela3.svg";
-import formaDecorativa from "../../assets/forma-decorativa.svg";
+import type { Answer } from "../../domain/expedition";
+import { ActivityLayout } from "../../components/ActivityLayout/ActivityLayout";
+import { Button } from "../../components/Button/Button";
+import { ContentCard } from "../../components/ContentCard/ContentCard";
+import { PageFooter } from "../../components/PageLayout/PageLayout";
 import "./Classification.css";
 
 const objects = [
-  { id: "folha", name: "Folha de papel" },
-  { id: "circulo", name: "Círculo" },
-  { id: "cubo", name: "Cubo" },
-  { id: "piramide", name: "Pirâmide" },
-  { id: "esfera", name: "Esfera" },
+  { id: "folha", name: "Folha de papel", category: "plano" },
+  { id: "circulo", name: "Círculo", category: "plano" },
+  { id: "cubo", name: "Cubo", category: "espacial" },
+  { id: "piramide", name: "Pirâmide", category: "espacial" },
+  { id: "esfera", name: "Esfera", category: "espacial" },
 ] as const;
 
 type ObjectId = (typeof objects)[number]["id"];
-type Category = "plano" | "espacial";
+type Category = (typeof objects)[number]["category"];
 
-const categoriesByObject: Record<ObjectId, Category> = {
-  folha: "plano", circulo: "plano", cubo: "espacial", piramide: "espacial", esfera: "espacial",
-};
-
-export const Classification = ({ onContinue }: { onContinue: (answer: Answer) => void }): ReactElement => {
+export function Classification({ onContinue }: { onContinue: (answer: Answer) => void }) {
   const [answers, setAnswers] = useState<Partial<Record<ObjectId, Category>>>({});
   const [submitted, setSubmitted] = useState(false);
   const allClassified = objects.every(({ id }) => answers[id] !== undefined);
-  const correct = objects.every(({ id }) => answers[id] === categoriesByObject[id]);
+  const correct = objects.every(({ id, category }) => answers[id] === category);
 
-  const chooseCategory = (objectId: ObjectId, category: Category) => {
+  function chooseCategory(objectId: ObjectId, category: Category) {
     setAnswers((current) => ({ ...current, [objectId]: category }));
     setSubmitted(false);
-  };
+  }
+
+  function handleAction() {
+    if (submitted) {
+      onContinue({ value: objects.map(({ id, name }) => `${name}: ${answers[id]}`).join(", "), correct });
+    } else {
+      setSubmitted(true);
+    }
+  }
 
   return (
-    <main className="classificacao" data-node-id="13:1307">
-      <div className="classificacao__shell">
-        <img
-          className="classificacao__forma"
-          src={formaDecorativa}
-          alt=""
-          aria-hidden="true"
-        />
-
-        <div className="classificacao__etapa">
-          Ação Material Concreta · Tela 3
-        </div>
-        <h1 className="classificacao__titulo">
-          MISSÃO 1.1 - PLANO OU ESPACIAL?
-        </h1>
-
-        <section className="classificacao__orientacao" aria-label="Orientação da Dra. Mira">
-          <DraMiraAvatar className="classificacao__avatar" />
-          <div className="classificacao__fala">
-            <p className="classificacao__nome">DRA. MIRA</p>
-            <p>
-              Classifique cada representação como plana ou espacial. Considere a
-              folha como uma superfície ideal, sem espessura.
-            </p>
-          </div>
-        </section>
-
-        <img
-          className="classificacao__tabela"
-          src={tabelaClassificacao}
-          alt="Galeria com folha, círculo, cubo, pirâmide e esfera."
-          width="367"
-          height="171"
-        />
-
-        <div className="classificacao__cartoes">
-          {objects.map(({ id, name }) => (
-            <section
-              className="classificacao__cartao"
-              key={id}
-              aria-labelledby={`classificacao-${id}`}
-            >
-              <h2 id={`classificacao-${id}`}>{name}</h2>
-              <div
-                className="classificacao__categorias"
-                role="group"
-                aria-label={`Classificação de ${name}`}
-              >
-                {(["plano", "espacial"] as const).map((category) => (
-                  <button
-                    aria-pressed={answers[id] === category}
-                    className={
-                      answers[id] === category
-                        ? "classificacao__opcao classificacao__opcao--selecionada"
-                        : "classificacao__opcao"
-                    }
-                    key={category}
-                    onClick={() => chooseCategory(id, category)}
-                    type="button"
-                  >
-                    {category}
-                  </button>
-                ))}
-              </div>
-            </section>
-          ))}
-        </div>
-
-        <button
-          className="classificacao__enviar"
-          disabled={!allClassified}
-          onClick={() => submitted
-            ? onContinue({ value: objects.map(({ id, name }) => `${name}: ${answers[id]}`).join(", "), correct })
-            : setSubmitted(true)}
-          type="button"
-        >
+    <ActivityLayout
+      step="classification"
+      frame="13:1307"
+      stage="Ação Material Concreta · Tela 3"
+      title="Missão 1.1 — Plano ou espacial?"
+      guidance="Classifique cada representação como plana ou espacial. Considere a folha como uma superfície ideal, sem espessura."
+      footer={<PageFooter>
+        <Button disabled={!allClassified} onClick={handleAction}>
           {submitted ? "Continuar" : "Classificar todos"}
-        </button>
-        <p className="classificacao__feedback" role="status">
-          {submitted && (correct ? "Classificação correta!" : "Folha e círculo são planos nesta atividade. Cubo, pirâmide e esfera são espaciais.")}
-        </p>
-      </div>
-    </main>
+        </Button>
+      </PageFooter>}
+    >
+      <img className="activity-illustration" src={tabelaClassificacao}
+        alt="Galeria com folha, círculo, cubo, pirâmide e esfera." width="367" height="171" />
+      {objects.map(({ id, name }) => (
+        <ContentCard key={id} aria-labelledby={`classificacao-${id}`}>
+          <h2 id={`classificacao-${id}`}>{name}</h2>
+          <div className="classificacao__categorias" role="group" aria-label={`Classificação de ${name}`}>
+            {(["plano", "espacial"] as const).map((category) => (
+              <Button variant="secondary" aria-pressed={answers[id] === category}
+                key={category} onClick={() => chooseCategory(id, category)}>
+                {category}
+              </Button>
+            ))}
+          </div>
+        </ContentCard>
+      ))}
+      <p role="status">
+        {submitted && (correct ? "Classificação correta!" : "Folha e círculo são planos nesta atividade. Cubo, pirâmide e esfera são espaciais.")}
+      </p>
+    </ActivityLayout>
   );
-};
+}

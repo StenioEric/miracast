@@ -1,14 +1,14 @@
-import type { ReactElement } from "react";
-
 import cristal from "../../assets/cristal.svg";
 import "./style.css";
 
-export const Brand = (): ReactElement => (
-  <header className="marca-miracast">
-    <h1>MiraCast</h1>
-    <div className="marca-miracast__subtitulo">
-      <img src={cristal} alt="" aria-hidden="true" />
-      <span>O Segredo do Cristal Quiral</span>
+export function Brand({ as: Title = "h1" }: { as?: "h1" | "p" }) {
+  return (
+    <div className="marca-miracast">
+      <Title className="marca-miracast__titulo">MiraCast</Title>
+      <div className="marca-miracast__subtitulo">
+        <img src={cristal} alt="" />
+        <span>O Segredo do Cristal Quiral</span>
+      </div>
     </div>
-  </header>
-);
+  );
+}

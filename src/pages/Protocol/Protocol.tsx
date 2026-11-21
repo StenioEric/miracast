@@ -1,7 +1,7 @@
-import type { ReactElement } from "react";
-
-import { DraMiraAvatar } from "../../components/DraMiraAvatar/DraMiraAvatar";
-import formaDecorativa from "../../assets/forma-decorativa.svg";
+import { ActivityLayout } from "../../components/ActivityLayout/ActivityLayout";
+import { Button } from "../../components/Button/Button";
+import { ContentCard } from "../../components/ContentCard/ContentCard";
+import { PageFooter } from "../../components/PageLayout/PageLayout";
 import "./Protocol.css";
 
 const questions = [
@@ -12,62 +12,22 @@ const questions = [
   "As duas formas (enantiômeros) interagem de forma diferente com o mundo (luz, receptores)?",
 ];
 
-type ProtocolProps = {
-  onStartPhase1: () => void;
-};
-
-export const Protocol = ({ onStartPhase1 }: ProtocolProps): ReactElement => (
-  <main className="protocolo" data-node-id="13:1261">
-    <div className="protocolo__shell">
-      <img
-        className="protocolo__forma protocolo__forma--superior"
-        src={formaDecorativa}
-        alt=""
-        aria-hidden="true"
-      />
-      <img
-        className="protocolo__forma protocolo__forma--inferior"
-        src={formaDecorativa}
-        alt=""
-        aria-hidden="true"
-      />
-
-      <div className="protocolo__etapa">Base Orientadora da Ação · Tela 2</div>
-      <h1 className="protocolo__titulo">PROTOCOLO MIRACAST</h1>
-
-      <section className="protocolo__orientacao" aria-label="Orientação da Dra. Mira">
-        <DraMiraAvatar className="protocolo__avatar" />
-        <div className="protocolo__fala">
-          <p className="protocolo__nome">DRA. MIRA</p>
-          <p className="protocolo__mensagem">
-            Tome meu caderno de campo. Estas 5 perguntas vão guiar toda a sua
-            análise. Consulte sempre que precisar — nas fases finais, você
-            seguirá sozinho.
-          </p>
-        </div>
-      </section>
-
-      <section className="protocolo__caderno" aria-label="Caderno de campo">
+export function Protocol({ onStartPhase1 }: { onStartPhase1: () => void }) {
+  return (
+    <ActivityLayout
+      introductory
+      step="protocol"
+      frame="13:1261"
+      stage="Base Orientadora da Ação · Tela 2"
+      title="Protocolo MiraCast"
+      guidance="Tome meu caderno de campo. Estas 5 perguntas vão guiar toda a sua análise. Consulte sempre que precisar — nas fases finais, você seguirá sozinho."
+      footer={<PageFooter><Button onClick={onStartPhase1}>Iniciar fase 1</Button></PageFooter>}
+    >
+      <ContentCard aria-label="Caderno de campo">
         <ol className="protocolo__perguntas">
-          {questions.map((question, index) => (
-            <li className="protocolo__pergunta" key={question}>
-              <span className="protocolo__numero">{index + 1}</span>
-              <p>{question}</p>
-            </li>
-          ))}
+          {questions.map((question) => <li key={question}>{question}</li>)}
         </ol>
-
-        <p className="protocolo__guia">
-          Seu guia de investigação ao longo de toda a expedição:
-        </p>
-        <button
-          className="protocolo__acao"
-          type="button"
-          onClick={onStartPhase1}
-        >
-          INICIAR FASE 1
-        </button>
-      </section>
-    </div>
-  </main>
-);
+      </ContentCard>
+    </ActivityLayout>
+  );
+}

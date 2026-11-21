@@ -1,10 +1,12 @@
 import { useState } from "react";
 
-import { GuidedActivity } from "../../components/GuidedActivity/GuidedActivity";
-import { Molecule } from "../../components/Molecule/Molecule";
 import type { Answer } from "../../domain/expedition";
-import { chclbrf } from "../../utils/moleculeGeometry";
 import type { Ligands } from "../../utils/moleculeGeometry";
+import { ActivityLayout } from "../../components/ActivityLayout/ActivityLayout";
+import { Button } from "../../components/Button/Button";
+import { ContentCard } from "../../components/ContentCard/ContentCard";
+import { Molecule } from "../../components/Molecule/Molecule";
+import { chclbrf } from "../../utils/moleculeGeometry";
 import "./SeRepetir.css";
 
 const replacedLigands: Ligands = ["H", "Cl", "Br", "H"];
@@ -41,8 +43,8 @@ export function SeRepetir({
   }
 
   return (
-    <GuidedActivity
-      className="se-repetir guided-activity--molecule"
+    <ActivityLayout
+      step="repeat-ligand"
       frame="2003:798"
       stage="Ação Material Concreta · Tela 10"
       title={replaced ? "A repetição muda tudo" : "E se repetir?"}
@@ -50,13 +52,13 @@ export function SeRepetir({
         ? "Agora substituímos F por H. O que aconteceu com os ligantes do carbono?"
         : "Substitua um dos ligantes e observe se o carbono continua quiral."}
     >
-      <section className="guided-activity__card" aria-label="Modelo da molécula">
+      <ContentCard aria-label="Modelo da molécula">
         <div className="se-repetir__formula">
           <span>{replaced ? "CH₂ClBr" : "CHClBrF"}</span>
           <small>{replaced ? "Ligantes repetidos" : "Quatro ligantes diferentes"}</small>
         </div>
 
-        <div className="guided-activity__model">
+        <div className="activity-model">
           <Molecule
             ligands={ligands}
             label={replaced ? "Modelo de CH₂ClBr com dois hidrogênios iguais" : "Modelo de CHClBrF com quatro ligantes diferentes"}
@@ -77,15 +79,15 @@ export function SeRepetir({
         </div>
 
         {!replaced ? (
-          <button type="button" className="se-repetir__acao" onClick={replaceLigand}>
-            SUBSTITUIR F POR H
-          </button>
+          <Button onClick={replaceLigand}>
+            Substituir F por H
+          </Button>
         ) : (
-          <button type="button" className="se-repetir__acao se-repetir__acao--reset" onClick={resetLigand}>
-            VOLTAR PARA CHClBrF
-          </button>
+          <Button variant="secondary" onClick={resetLigand}>
+            Voltar para CHClBrF
+          </Button>
         )}
-      </section>
+      </ContentCard>
 
       {replaced && (
         <section className="se-repetir__pergunta" aria-labelledby="se-repetir-pergunta">
@@ -111,16 +113,14 @@ export function SeRepetir({
             B. Não, há dois hidrogênios iguais
           </button>
 
-          <button
-            type="button"
-            className="se-repetir__continuar"
+          <Button
             disabled={selected === null}
             onClick={continueActivity}
           >
-            CONTINUAR
-          </button>
+            Continuar
+          </Button>
         </section>
       )}
-    </GuidedActivity>
+    </ActivityLayout>
   );
 }

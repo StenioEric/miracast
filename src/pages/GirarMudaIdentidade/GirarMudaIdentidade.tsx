@@ -1,9 +1,11 @@
 import { useState } from "react";
-import type { FormEvent, ReactElement } from "react";
-import type { Answer } from "../../domain/expedition";
+import type { FormEvent } from "react";
 
-import { DraMiraAvatar } from "../../components/DraMiraAvatar/DraMiraAvatar";
-import formaDecorativa from "../../assets/forma-decorativa.svg";
+import type { Answer } from "../../domain/expedition";
+import { ActivityLayout } from "../../components/ActivityLayout/ActivityLayout";
+import { Button } from "../../components/Button/Button";
+import { ContentCard } from "../../components/ContentCard/ContentCard";
+import { PageFooter } from "../../components/PageLayout/PageLayout";
 import "./GirarMudaIdentidade.css";
 
 type GirarMudaIdentidadeProps = {
@@ -19,9 +21,7 @@ const supportIdeas = [
   "continua",
 ];
 
-export const GirarMudaIdentidade = ({
-  onContinue,
-}: GirarMudaIdentidadeProps): ReactElement => {
+export function GirarMudaIdentidade({ onContinue }: GirarMudaIdentidadeProps) {
   const [answer, setAnswer] = useState("");
   const [selectedIdeas, setSelectedIdeas] = useState<string[]>([]);
   const [submitted, setSubmitted] = useState(false);
@@ -45,107 +45,58 @@ export const GirarMudaIdentidade = ({
   }
 
   return (
-    <main className="girar-identidade" data-node-id="2003:131">
-      <div className="girar-identidade__shell">
-        <img
-          className="girar-identidade__forma girar-identidade__forma--superior"
-          src={formaDecorativa}
-          alt=""
-          aria-hidden="true"
-        />
-        <img
-          className="girar-identidade__forma girar-identidade__forma--inferior"
-          src={formaDecorativa}
-          alt=""
-          aria-hidden="true"
-        />
-
-        <div className="girar-identidade__etapa">
-          Ação Material Concreta · Tela 4
+    <ActivityLayout
+      step="rotation-identity"
+      stage="Ação Material Concreta · Tela 4"
+      title="Missão 1.2 — Girar muda a identidade?"
+      guidance="Observe o cubo girando. Em uma palavra: o objeto mudou de identidade ao girar? Por quê?"
+      footer={<PageFooter>
+        {submitted
+          ? <Button onClick={continueActivity}>Continuar</Button>
+          : <Button form="resposta-giro" type="submit" disabled={!answer.trim()}>Enviar resposta</Button>}
+      </PageFooter>}
+    >
+      <ContentCard aria-label="Pergunta sobre rotação">
+        <div className="girar-identidade__cubo-area" role="img" aria-label="Cubo girando">
+          <div className="girar-identidade__cubo">
+            <span className="girar-identidade__face girar-identidade__face--traseira" />
+            <span className="girar-identidade__face girar-identidade__face--superior" />
+            <span className="girar-identidade__face girar-identidade__face--lateral" />
+            <span className="girar-identidade__face girar-identidade__face--frontal" />
+          </div>
         </div>
-        <h1 className="girar-identidade__titulo">
-          MISSÃO 1.2 — GIRAR MUDA A IDENTIDADE?
-        </h1>
+        <p className="girar-identidade__legenda">cubo girando...</p>
+        <h2>O cubo mudou de identidade ao girar? Escreva sua resposta explicando o motivo.</h2>
 
-        <section className="girar-identidade__orientacao" aria-label="Orientação da Dra. Mira">
-          <DraMiraAvatar className="girar-identidade__avatar" />
-          <div className="girar-identidade__fala">
-            <p className="girar-identidade__nome">DRA. MIRA</p>
-            <p>
-              Observe o cubo girando. Em uma palavra: o objeto mudou de
-              identidade ao girar? Por quê?
-            </p>
-          </div>
-        </section>
+        <form id="resposta-giro" className="girar-identidade__formulario" onSubmit={handleSubmit}>
+          <label className="girar-identidade__resposta">
+            <span className="girar-identidade__sr-only">Escreva sua resposta</span>
+            <textarea className="form-control" rows={4}
+              value={answer}
+              onChange={(event) => {
+                setAnswer(event.target.value);
+                setSubmitted(false);
+              }}
+              placeholder="Escreva sua resposta..."
+              maxLength={2000}
+              required
+            />
+          </label>
 
-        <section className="girar-identidade__cartao" aria-label="Pergunta sobre rotação">
-          <div className="girar-identidade__cubo-area" role="img" aria-label="Cubo girando">
-            <div className="girar-identidade__cubo">
-              <span className="girar-identidade__face girar-identidade__face--traseira" />
-              <span className="girar-identidade__face girar-identidade__face--superior" />
-              <span className="girar-identidade__face girar-identidade__face--lateral" />
-              <span className="girar-identidade__face girar-identidade__face--frontal" />
+          <fieldset className="girar-identidade__apoio">
+            <legend>Ideias-chave de apoio:</legend>
+            <div className="girar-identidade__ideias">
+              {supportIdeas.map((idea) => (
+                <Button variant="secondary" aria-pressed={selectedIdeas.includes(idea)}
+                  key={idea} onClick={() => toggleIdea(idea)}>
+                  {idea}
+                </Button>
+              ))}
             </div>
-          </div>
-          <p className="girar-identidade__legenda">cubo girando...</p>
-          <h2>O cubo mudou de identidade ao girar? Escreva sua resposta explicando o motivo.</h2>
+          </fieldset>
 
-          <form className="girar-identidade__formulario" onSubmit={handleSubmit}>
-            <label className="girar-identidade__resposta">
-              <span className="girar-identidade__sr-only">Escreva sua resposta</span>
-              <textarea
-                value={answer}
-                onChange={(event) => {
-                  setAnswer(event.target.value);
-                  setSubmitted(false);
-                }}
-                placeholder="Escreva sua resposta..."
-                maxLength={2000}
-                required
-              />
-            </label>
-
-            <fieldset className="girar-identidade__apoio">
-              <legend>Ideias-chave de apoio:</legend>
-              <div className="girar-identidade__ideias">
-                {supportIdeas.map((idea) => (
-                  <button
-                    aria-pressed={selectedIdeas.includes(idea)}
-                    className={
-                      selectedIdeas.includes(idea)
-                        ? "girar-identidade__ideia girar-identidade__ideia--selecionada"
-                        : "girar-identidade__ideia"
-                    }
-                    key={idea}
-                    onClick={() => toggleIdea(idea)}
-                    type="button"
-                  >
-                    {idea}
-                  </button>
-                ))}
-              </div>
-            </fieldset>
-
-            {submitted ? (
-              <button
-                className="girar-identidade__enviar"
-                onClick={continueActivity}
-                type="button"
-              >
-                CONTINUAR
-              </button>
-            ) : (
-              <button
-                className="girar-identidade__enviar"
-                disabled={!answer.trim()}
-                type="submit"
-              >
-                ENVIAR RESPOSTA ✍️
-              </button>
-            )}
-          </form>
-        </section>
-      </div>
-    </main>
+        </form>
+      </ContentCard>
+    </ActivityLayout>
   );
-};
+}

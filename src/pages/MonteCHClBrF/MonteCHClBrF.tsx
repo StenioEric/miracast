@@ -1,9 +1,11 @@
 import { useState } from "react";
 
-import { GuidedActivity } from "../../components/GuidedActivity/GuidedActivity";
-import { Molecule } from "../../components/Molecule/Molecule";
 import type { Answer } from "../../domain/expedition";
 import type { Ligands } from "../../utils/moleculeGeometry";
+import { ActivityLayout } from "../../components/ActivityLayout/ActivityLayout";
+import { Button } from "../../components/Button/Button";
+import { ContentCard } from "../../components/ContentCard/ContentCard";
+import { Molecule } from "../../components/Molecule/Molecule";
 import "./MonteCHClBrF.css";
 
 const atoms = ["H", "Cl", "Br", "F"] as const;
@@ -54,8 +56,8 @@ export function MonteCHClBrF({
   }
 
   return (
-    <GuidedActivity
-      className="monte-chclbrf guided-activity--molecule"
+    <ActivityLayout
+      step="build-molecule"
       frame={complete ? "2003:865" : "2003:914"}
       stage={complete ? "Montagem concluída" : "Fase 1 · Monte o carbono quiral"}
       title={complete ? "Quatro átomos posicionados" : "Monte o CHClBrF"}
@@ -63,11 +65,10 @@ export function MonteCHClBrF({
         ? "Muito bem! Agora os quatro ligantes estão ocupando as posições do carbono central."
         : "Clique nos átomos abaixo e coloque cada um em uma posição da molécula."}
     >
-      <section
-        className="guided-activity__card"
+      <ContentCard
         aria-label={complete ? "Molécula com quatro átomos posicionados" : "Montagem da molécula CHClBrF"}
       >
-        <div className="guided-activity__model">
+        <div className="activity-model">
           <Molecule
             ligands={ligands}
             label="Modelo tetraédrico do carbono central com seus quatro ligantes"
@@ -137,25 +138,21 @@ export function MonteCHClBrF({
         </div>
 
         {complete ? (
-          <button
-            type="button"
-            className="monte-chclbrf__acao"
+          <Button
             onClick={continueActivity}
             disabled={!selectedAnswer}
           >
-            CONTINUAR
-          </button>
+            Continuar
+          </Button>
         ) : (
-          <button
-            type="button"
-            className="monte-chclbrf__acao monte-chclbrf__acao--reset"
+          <Button variant="secondary"
             disabled={!ligands.some((ligand) => ligand)}
             onClick={clearPositions}
           >
-            LIMPAR POSIÇÕES
-          </button>
+            Limpar posições
+          </Button>
         )}
-      </section>
-    </GuidedActivity>
+      </ContentCard>
+    </ActivityLayout>
   );
 }

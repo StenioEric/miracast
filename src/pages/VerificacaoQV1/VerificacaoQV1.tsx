@@ -1,8 +1,8 @@
 import illustration from "../../assets/verif-qv1.svg";
-import { ChoiceQuestion } from "../../components/ActivityResponse/ActivityResponse";
-import type { Question } from "../../components/ActivityResponse/ActivityResponse";
-import { GuidedActivity } from "../../components/GuidedActivity/GuidedActivity";
 import type { Answer } from "../../domain/expedition";
+import type { Question } from "../../components/ActivityResponse/ActivityResponse";
+import { ActivityLayout } from "../../components/ActivityLayout/ActivityLayout";
+import { ChoiceQuestion } from "../../components/ActivityResponse/ActivityResponse";
 import "./VerificacaoQV1.css";
 
 const question: Question = {
@@ -18,23 +18,19 @@ const question: Question = {
 
 export function VerificacaoQV1({ onContinue }: { onContinue: (answer: Answer) => void }) {
   return (
-    <GuidedActivity
-      className="verificacao-qv1"
+    <ActivityLayout
+      step="qv1"
       frame="2003:54"
       stage="Verificação · Ação Material Concreta"
-      title="VERIFICAÇÃO Q.V1"
       guidance="Ao girar um objeto rígido, observe com atenção o que realmente mudou."
     >
       <ChoiceQuestion
-        className="guided-activity__card"
         question={question}
         onContinue={onContinue}
-        verifyLabel="VERIFICAR RESPOSTA"
-        continueLabel="CONTINUAR"
-        incorrectContinueLabel="CONTINUAR MESMO ASSIM"
+        incorrectContinueLabel="Continuar mesmo assim"
         illustration={
           <img
-            className="guided-activity__illustration"
+            className="activity-illustration"
             src={illustration}
             width="364"
             height="225"
@@ -42,6 +38,6 @@ export function VerificacaoQV1({ onContinue }: { onContinue: (answer: Answer) =>
           />
         }
       />
-    </GuidedActivity>
+    </ActivityLayout>
   );
 }

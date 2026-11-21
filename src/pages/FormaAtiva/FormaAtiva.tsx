@@ -1,8 +1,8 @@
 import illustration from "../../assets/forma-ativa.svg";
-import { ChoiceQuestion } from "../../components/ActivityResponse/ActivityResponse";
-import type { Question } from "../../components/ActivityResponse/ActivityResponse";
-import { GuidedActivity } from "../../components/GuidedActivity/GuidedActivity";
 import type { Answer } from "../../domain/expedition";
+import type { Question } from "../../components/ActivityResponse/ActivityResponse";
+import { ActivityLayout } from "../../components/ActivityLayout/ActivityLayout";
+import { ChoiceQuestion } from "../../components/ActivityResponse/ActivityResponse";
 import "./FormaAtiva.css";
 
 const question: Question = {
@@ -18,11 +18,11 @@ const question: Question = {
 
 export function FormaAtiva({ onContinue }: { onContinue: (answer: Answer) => void }) {
   return (
-    <GuidedActivity
-      className="forma-ativa guided-activity--purple guided-activity--large guided-activity--orange"
+    <ActivityLayout
+      step="active-form"
       frame="2003:1008"
       stage="Ação Verbalizada · Tela 14"
-      title="MISSÃO 3.3 — A FORMA ATIVA"
+      title="Missão 3.3 — A forma ativa"
       guidance={
         <>
           Dois frascos: (+) e (−), pelo desvio da luz.<br />
@@ -31,12 +31,11 @@ export function FormaAtiva({ onContinue }: { onContinue: (answer: Answer) => voi
       }
     >
       <ChoiceQuestion
-        className=""
         question={question}
         onContinue={onContinue}
         illustration={
           <img
-            className="guided-activity__illustration"
+            className="activity-illustration"
             src={illustration}
             width="364"
             height="217"
@@ -44,6 +43,6 @@ export function FormaAtiva({ onContinue }: { onContinue: (answer: Answer) => voi
           />
         }
       />
-    </GuidedActivity>
+    </ActivityLayout>
   );
 }

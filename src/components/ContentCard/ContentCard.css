@@ -1,0 +1,22 @@
+.content-card {
+  display: grid;
+  min-width: 0;
+  gap: var(--space-4);
+  padding: clamp(var(--space-4), 4vw, var(--space-6));
+  border: var(--border-size) solid var(--ink);
+  border-radius: var(--radius-card);
+  background: var(--white);
+  box-shadow: var(--shadow);
+  color: var(--ink);
+}
+
+.content-card :where(h1, h2) {
+  font-size: var(--font-heading);
+  font-weight: 900;
+  line-height: 1.3;
+}
+
+.content-card :where(h3) {
+  font-size: var(--font-body);
+  font-weight: 900;
+}
