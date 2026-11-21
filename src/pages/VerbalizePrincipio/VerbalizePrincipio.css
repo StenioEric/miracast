@@ -1,1 +1,214 @@
-/* A aparência desta página usa os estilos compartilhados dos componentes. */
+.verbalize-principio {
+  min-height: 100svh;
+  background: #5559d8;
+  color: #202522;
+  font-family: "Nunito", "Trebuchet MS", sans-serif;
+}
+
+.verbalize-principio__shell {
+  position: relative;
+  width: min(100%, 393px);
+  min-height: 1219px;
+  margin: 0 auto;
+  overflow: hidden;
+  background: #5559d8;
+}
+
+.verbalize-principio__etapa,
+.verbalize-principio__titulo,
+.verbalize-principio__guia,
+.verbalize-principio__card {
+  position: absolute;
+  z-index: 1;
+  left: 16px;
+  width: calc(100% - 32px);
+}
+
+.verbalize-principio__etapa {
+  top: 24px;
+  display: flex;
+  height: 34px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 100px;
+  background: rgb(255 255 255 / 15%);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 900;
+  line-height: 1.35;
+  text-align: center;
+}
+
+.verbalize-principio__titulo {
+  top: 76px;
+  margin: 0;
+  color: #fff;
+  font-size: 21px;
+  font-weight: 900;
+  line-height: 1.35;
+}
+
+.verbalize-principio__guia {
+  top: 132px;
+  display: flex;
+  height: 95px;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.verbalize-principio__avatar {
+  display: flex;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  align-items: center;
+  justify-content: center;
+  margin-top: 2px;
+  border: 2px solid #202522;
+  border-radius: 50%;
+  background: #5559d8;
+  box-shadow: 3px 4px 0 #202522;
+  font-size: 24px;
+}
+
+.verbalize-principio__balao {
+  min-width: 0;
+  height: 95px;
+  flex: 1 1 auto;
+  padding: 8px 10px;
+  border: 2px solid #202522;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 3px 4px 0 #202522;
+  line-height: 1.25;
+}
+
+.verbalize-principio__balao p {
+  margin: 0 0 7px;
+  color: #554bd8;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.verbalize-principio__balao span {
+  display: block;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.verbalize-principio__card {
+  top: 246px;
+  display: flex;
+  min-height: 760px;
+  flex-direction: column;
+  gap: 12px;
+  overflow: hidden;
+  border: 2px solid #202522;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 3px 4px 0 #202522;
+  padding: 14px;
+}
+
+.verbalize-principio__modelo {
+  height: 230px;
+  flex: 0 0 230px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #dfe4e0;
+  border-radius: 18px;
+  background: #f4f8f6;
+}
+
+.verbalize-principio__modelo .molecule {
+  width: 270px;
+  max-width: 100%;
+  margin: 0;
+}
+
+.verbalize-principio__card h2 {
+  margin: 2px 0 0;
+  color: #202522;
+  font-size: 16px;
+  font-weight: 900;
+  line-height: 1.35;
+}
+
+.verbalize-principio__form {
+  display: flex;
+  min-height: 330px;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.verbalize-principio__form label {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  color: #202522;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.verbalize-principio__form textarea {
+  width: 100%;
+  min-height: 150px;
+  resize: vertical;
+  padding: 12px;
+  border: 3px solid #202522;
+  border-radius: 18px;
+  background: #eef1fc;
+  color: #202522;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.verbalize-principio__form textarea:focus-visible {
+  outline: 3px solid #5541c6;
+  outline-offset: 3px;
+}
+
+.verbalize-principio__apoio {
+  margin: 0;
+  padding: 8px 10px;
+  border-left: 4px solid #554bd8;
+  border-radius: 8px;
+  background: #efefff;
+  color: #202522;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.verbalize-principio__botao {
+  width: 100%;
+  min-height: 48px;
+  margin-top: auto;
+  border: 3px solid #202522;
+  border-radius: 100px;
+  background: #5559d8;
+  box-shadow: 3px 4px 0 #202522;
+  color: #fff;
+  cursor: pointer;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.verbalize-principio__botao:disabled {
+  background: #c6c6c5;
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+@media (max-width: 360px) {
+  .verbalize-principio__titulo {
+    font-size: 19px;
+  }
+
+  .verbalize-principio__balao span {
+    font-size: 12px;
+  }
+}
