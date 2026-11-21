@@ -1,5 +1,8 @@
 .page {
   --page-bg: var(--blue);
+  --page-width: 40rem;
+  isolation: isolate;
+  position: relative;
   min-height: 100svh;
   background: var(--page-bg);
   color: var(--white);
@@ -10,25 +13,29 @@
 .page--expedition { --page-bg: var(--teal); }
 
 .page__shell {
-  isolation: isolate;
-  position: relative;
   display: flex;
   flex-direction: column;
   gap: var(--space-5);
-  width: min(100%, 40rem);
+  width: min(100%, var(--page-width));
   min-height: 100svh;
   margin-inline: auto;
   padding: var(--space-6) clamp(var(--space-4), 4vw, var(--space-8)) var(--space-8);
-  overflow-x: clip;
 }
 
 .page__decoration {
   position: absolute;
   z-index: -1;
-  inset: -8rem auto auto -7rem;
+  inset: 0;
+  overflow: clip;
+  pointer-events: none;
+}
+
+.page__decoration img {
+  position: absolute;
+  top: -8rem;
+  left: max(-7rem, calc((100% - var(--page-width)) / 2 - 7rem));
   width: 17rem;
   opacity: .42;
-  pointer-events: none;
 }
 
 .page__content,

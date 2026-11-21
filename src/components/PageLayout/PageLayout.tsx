@@ -19,8 +19,10 @@ export function PageLayout({
 }: PageLayoutProps) {
   return (
     <main className={["page", `page--${theme}`, className].filter(Boolean).join(" ")} data-node-id={frame}>
+      <div className="page__decoration" aria-hidden="true">
+        <img src={illustration} alt="" />
+      </div>
       <div className="page__shell">
-        <img className="page__decoration" src={illustration} alt="" />
         {header}
         <div className="page__content">{children}</div>
         {footer}
