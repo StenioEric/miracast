@@ -1,11 +1,16 @@
 import { useState } from "react";
 
+import { GuidedActivity } from "../../components/GuidedActivity/GuidedActivity";
 import { Molecule } from "../../components/Molecule/Molecule";
 import type { Answer } from "../../domain/expedition";
 import type { Ligands } from "../../utils/moleculeGeometry";
 import "./MonteCHClBrF.css";
 
 const atoms = ["H", "Cl", "Br", "F"] as const;
+const chiralityAnswers = [
+  { value: "A. Sim — possui 4 átomos todos diferentes", correct: true },
+  { value: "B. Não — ainda faltam ligações", correct: false },
+] as const;
 
 type Atom = (typeof atoms)[number];
 
@@ -15,153 +20,142 @@ export function MonteCHClBrF({
   onContinue: (answer: Answer) => void;
 }) {
   const [ligands, setLigands] = useState<Ligands>(["", "", "", ""]);
-  const [selectedAnswer, setSelectedAnswer] = useState<"A" | "B" | null>(null);
+  const [selectedAnswer, setSelectedAnswer] = useState<Answer | null>(null);
   const complete = ligands.every((ligand) => ligand !== "");
 
   function placeAtom(atom: Atom) {
-    if (ligands.includes(atom) || complete) return;
-
+    if (ligands.includes(atom)) return;
     const firstEmpty = ligands.findIndex((ligand) => ligand === "");
     if (firstEmpty === -1) return;
 
-    const next: [string, string, string, string] = [...ligands];
+    const next: [...Ligands] = [...ligands];
     next[firstEmpty] = atom;
     setLigands(next);
   }
 
   function removeAtom(index: number) {
-    const next: [string, string, string, string] = [...ligands];
+    const next: [...Ligands] = [...ligands];
     next[index] = "";
     setSelectedAnswer(null);
     setLigands(next);
   }
 
-  function reset() {
+  function clearPositions() {
     setSelectedAnswer(null);
     setLigands(["", "", "", ""]);
   }
 
+  function continueActivity() {
+    if (!complete || !selectedAnswer) return;
+    onContinue({
+      value: ligands.join(", "),
+      correct: selectedAnswer.correct,
+    });
+  }
+
   return (
-    <main className="monte-chclbrf" data-node-id={complete ? "2003:865" : "2003:914"}>
-      <div className="monte-chclbrf__shell">
-        <div className="monte-chclbrf__etapa">
-          {complete ? "Montagem concluída" : "Fase 1 · Monte o carbono quiral"}
+    <GuidedActivity
+      className="monte-chclbrf guided-activity--molecule"
+      frame={complete ? "2003:865" : "2003:914"}
+      stage={complete ? "Montagem concluída" : "Fase 1 · Monte o carbono quiral"}
+      title={complete ? "Quatro átomos posicionados" : "Monte o CHClBrF"}
+      guidance={complete
+        ? "Muito bem! Agora os quatro ligantes estão ocupando as posições do carbono central."
+        : "Clique nos átomos abaixo e coloque cada um em uma posição da molécula."}
+    >
+      <section
+        className="guided-activity__card"
+        aria-label={complete ? "Molécula com quatro átomos posicionados" : "Montagem da molécula CHClBrF"}
+      >
+        <div className="guided-activity__model">
+          <Molecule
+            ligands={ligands}
+            label="Modelo tetraédrico do carbono central com seus quatro ligantes"
+          />
         </div>
 
-        <h1 className="monte-chclbrf__titulo">
-          {complete ? "Quatro átomos posicionados" : "Monte o CHClBrF"}
-        </h1>
+        <div className="monte-chclbrf__posicoes" aria-label="Posições da molécula">
+          {ligands.map((ligand, index) => (
+            <button
+              type="button"
+              className={ligand ? "monte-chclbrf__posicao monte-chclbrf__posicao--preenchida" : "monte-chclbrf__posicao"}
+              key={index}
+              disabled={!ligand}
+              onClick={() => removeAtom(index)}
+              aria-label={ligand ? `Remover átomo ${ligand} da posição ${index + 1}` : `Posição ${index + 1} vazia`}
+            >
+              {ligand || index + 1}
+            </button>
+          ))}
+        </div>
 
-        <section className="monte-chclbrf__orientacao" aria-label="Orientação da Dra. Mira">
-          <div className="monte-chclbrf__avatar" aria-hidden="true">👩‍🔬</div>
-          <div className="monte-chclbrf__balao">
-            <p>DRA. MIRA</p>
-            <span>
-              {complete
-                ? "Muito bem! Agora os quatro ligantes estão ocupando as posições do carbono central."
-                : "Clique nos átomos abaixo e coloque cada um em uma posição da molécula."}
-            </span>
-          </div>
-        </section>
+        <div className="monte-chclbrf__divider" />
 
-        <section
-          className={complete ? "monte-chclbrf__card monte-chclbrf__card--completo" : "monte-chclbrf__card"}
-          aria-label={complete ? "Molécula com quatro átomos posicionados" : "Montagem da molécula CHClBrF"}
-        >
-          <div className="monte-chclbrf__canvas">
-            <Molecule
-              ligands={ligands}
-              label="Modelo tetraédrico do carbono central com seus quatro ligantes"
-            />
-          </div>
+        {complete ? (
+          <>
+            <div className="monte-chclbrf__completo" role="status">
+              <strong>CHClBrF montado</strong>
+              <span>O carbono central está ligado a quatro átomos diferentes.</span>
+            </div>
 
-          <div className="monte-chclbrf__posicoes" aria-label="Posições da molécula">
-            {ligands.map((ligand, index) => (
+            <section className="monte-chclbrf__pergunta" aria-labelledby="monte-chclbrf-pergunta">
+              <h2 id="monte-chclbrf-pergunta">Com os 4 átomos posicionados, esse carbono é quiral?</h2>
+              {chiralityAnswers.map((answer) => (
+                <button
+                  key={answer.value}
+                  type="button"
+                  aria-pressed={selectedAnswer === answer}
+                  className="monte-chclbrf__opcao"
+                  onClick={() => setSelectedAnswer(answer)}
+                >
+                  {answer.value}
+                </button>
+              ))}
+            </section>
+          </>
+        ) : (
+          <p className="monte-chclbrf__instrucao">
+            Escolha H, Cl, Br e F. Cada átomo pode ser colocado uma única vez.
+          </p>
+        )}
+
+        <div className="monte-chclbrf__atomos" aria-label="Átomos disponíveis">
+          {atoms.map((atom) => {
+            const placed = ligands.includes(atom);
+            return (
               <button
                 type="button"
-                className={ligand ? "monte-chclbrf__posicao monte-chclbrf__posicao--preenchida" : "monte-chclbrf__posicao"}
-                key={index}
-                onClick={() => ligand && removeAtom(index)}
-                aria-label={ligand ? `Remover átomo ${ligand} da posição ${index + 1}` : `Posição ${index + 1} vazia`}
+                className="monte-chclbrf__atomo"
+                key={atom}
+                disabled={placed}
+                onClick={() => placeAtom(atom)}
               >
-                {ligand || index + 1}
+                {atom}
               </button>
-            ))}
-          </div>
+            );
+          })}
+        </div>
 
-          <div className="monte-chclbrf__divider" />
-
-          {complete ? (
-            <>
-              <div className="monte-chclbrf__completo" role="status">
-                <strong>CHClBrF montado</strong>
-                <span>O carbono central está ligado a quatro átomos diferentes.</span>
-              </div>
-
-              <section className="monte-chclbrf__pergunta" aria-labelledby="monte-chclbrf-pergunta">
-                <h2 id="monte-chclbrf-pergunta">Com os 4 átomos posicionados, esse carbono é quiral?</h2>
-                <button
-                  type="button"
-                  aria-pressed={selectedAnswer === "A"}
-                  className={selectedAnswer === "A" ? "monte-chclbrf__opcao monte-chclbrf__opcao--selecionada" : "monte-chclbrf__opcao"}
-                  onClick={() => setSelectedAnswer("A")}
-                >
-                  A. Sim — possui 4 átomos todos diferentes
-                </button>
-                <button
-                  type="button"
-                  aria-pressed={selectedAnswer === "B"}
-                  className={selectedAnswer === "B" ? "monte-chclbrf__opcao monte-chclbrf__opcao--selecionada" : "monte-chclbrf__opcao"}
-                  onClick={() => setSelectedAnswer("B")}
-                >
-                  B. Não — ainda faltam ligações
-                </button>
-              </section>
-            </>
-          ) : (
-            <p className="monte-chclbrf__instrucao">
-              Escolha H, Cl, Br e F. Cada átomo pode ser colocado uma única vez.
-            </p>
-          )}
-
-          <div className="monte-chclbrf__atomos" aria-label="Átomos disponíveis">
-            {atoms.map((atom) => {
-              const placed = ligands.includes(atom);
-              return (
-                <button
-                  type="button"
-                  className={placed ? "monte-chclbrf__atomo monte-chclbrf__atomo--usado" : "monte-chclbrf__atomo"}
-                  key={atom}
-                  disabled={placed || complete}
-                  onClick={() => placeAtom(atom)}
-                >
-                  {atom}
-                </button>
-              );
-            })}
-          </div>
-
-          {complete ? (
-            <button
-              type="button"
-              className="monte-chclbrf__acao"
-              onClick={() => onContinue({ value: ligands.join(", "), correct: selectedAnswer === "A" })}
-              disabled={!selectedAnswer}
-            >
-              CONTINUAR
-            </button>
-          ) : (
-            <button
-              type="button"
-              className="monte-chclbrf__acao monte-chclbrf__acao--reset"
-              disabled={!ligands.some((ligand) => ligand)}
-              onClick={reset}
-            >
-              LIMPAR POSIÇÕES
-            </button>
-          )}
-        </section>
-      </div>
-    </main>
+        {complete ? (
+          <button
+            type="button"
+            className="monte-chclbrf__acao"
+            onClick={continueActivity}
+            disabled={!selectedAnswer}
+          >
+            CONTINUAR
+          </button>
+        ) : (
+          <button
+            type="button"
+            className="monte-chclbrf__acao monte-chclbrf__acao--reset"
+            disabled={!ligands.some((ligand) => ligand)}
+            onClick={clearPositions}
+          >
+            LIMPAR POSIÇÕES
+          </button>
+        )}
+      </section>
+    </GuidedActivity>
   );
 }

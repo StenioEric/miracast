@@ -1,199 +1,32 @@
-/* A aparência desta página usa o padrão visual das atividades. */
-
 .forma-ativa {
-  min-height: 100svh;
-  background: #5559d8;
-  color: #202522;
-  font-family: "Nunito", "Trebuchet MS", sans-serif;
+  --guided-title-size: 27px;
+  --guided-guidance-size: 15px;
+  --guided-question-size: 19px;
+  --guided-option-radius: 28px;
+  --guided-option-size: 15px;
 }
 
-.forma-ativa__shell {
-  position: relative;
-  width: min(100%, 393px);
-  min-height: 1219px;
-  margin: 0 auto;
-  overflow: hidden;
-  background: #5559d8;
+.forma-ativa .guided-activity__title {
+  font-size: clamp(23px, 6.8vw, var(--guided-title-size));
 }
 
-.forma-ativa__etapa {
-  position: absolute;
-  z-index: 1;
-  top: 35px;
-  left: 28px;
-  display: flex;
-  width: calc(100% - 56px);
-  height: 50px;
-  align-items: center;
-  justify-content: center;
-  border-radius: 100px;
-  background: rgb(255 255 255 / 18%);
-  color: #fff;
-  font-size: 17px;
-  font-weight: 900;
-  text-align: center;
+.forma-ativa .choice-question {
+  gap: 24px;
 }
 
-.forma-ativa__titulo {
-  position: absolute;
-  z-index: 1;
-  top: 112px;
-  left: 26px;
-  width: calc(100% - 52px);
-  margin: 0;
-  color: #fff;
-  font-size: 27px;
-  font-weight: 900;
-  line-height: 1.15;
-}
-
-.forma-ativa__guia {
-  position: absolute;
-  z-index: 1;
-  top: 267px;
-  left: 30px;
-  display: flex;
-  width: calc(100% - 60px);
-  height: 92px;
-  align-items: flex-start;
-  gap: 11px;
-}
-
-.forma-ativa__avatar {
-  display: flex;
-  width: 70px;
-  height: 70px;
-  flex: 0 0 70px;
-  align-items: center;
-  justify-content: center;
-  margin-top: 2px;
-  border: 4px solid #202522;
-  border-radius: 50%;
-  background: #5559d8;
-  box-shadow: 5px 7px 0 #202522;
-  font-size: 38px;
-}
-
-.forma-ativa__balao {
-  min-width: 0;
-  height: 92px;
-  flex: 1 1 auto;
-  padding: 9px 12px;
-  border: 3px solid #202522;
-  border-radius: 18px;
-  background: #fff;
-  box-shadow: 5px 7px 0 #202522;
-  line-height: 1.15;
-}
-
-.forma-ativa__balao p {
-  margin: 0 0 5px;
-  color: #554bd8;
-  font-size: 16px;
-  font-weight: 900;
-}
-
-.forma-ativa__balao span {
-  display: block;
-  font-size: 15px;
-  font-weight: 900;
-}
-
-.forma-ativa__card {
-  position: absolute;
-  z-index: 1;
-  top: 399px;
-  left: 28px;
-  display: flex;
-  width: calc(100% - 56px);
-  min-height: 570px;
-  flex-direction: column;
-  gap: 10px;
+.forma-ativa .choice-question__content {
   padding: 10px 14px 14px;
-  border: 3px solid #202522;
+  border: 3px solid var(--guided-ink);
   border-radius: 28px;
   background: #fff;
-  box-shadow: 5px 7px 0 #202522;
+  box-shadow: var(--guided-shadow);
 }
 
-.forma-ativa__quadro {
-  display: block;
-  width: 100%;
-  height: 205px;
-  object-fit: contain;
+.forma-ativa .guided-activity__illustration {
+  max-height: 205px;
   border-radius: 18px;
 }
 
-.forma-ativa__card h2 {
-  margin: 2px 0 4px;
-  color: #202522;
-  font-size: 19px;
-  font-weight: 900;
-  line-height: 1.25;
-}
-
-.forma-ativa__opcoes {
-  display: flex;
-  flex-direction: column;
+.forma-ativa .activity-options {
   gap: 12px;
-}
-
-.forma-ativa__opcao {
-  width: 100%;
-  min-height: 68px;
-  padding: 8px 16px;
-  border: 3px solid #202522;
-  border-radius: 28px;
-  background: #f39900;
-  box-shadow: 5px 7px 0 #202522;
-  color: #202522;
-  cursor: pointer;
-  font: inherit;
-  font-size: 15px;
-  font-weight: 900;
-  line-height: 1.2;
-  text-align: left;
-}
-
-.forma-ativa__opcao--selecionada {
-  background: #ffbe3b;
-  box-shadow: inset 0 0 0 2px #202522, 5px 7px 0 #202522;
-}
-
-.forma-ativa__botao {
-  position: absolute;
-  z-index: 2;
-  top: 1075px;
-  left: 29px;
-  width: calc(100% - 58px);
-  height: 70px;
-  border: 4px solid #202522;
-  border-radius: 100px;
-  background: #fff;
-  box-shadow: 5px 7px 0 #202522;
-  color: #202522;
-  cursor: pointer;
-  font: inherit;
-  font-size: 24px;
-  font-weight: 900;
-}
-
-.forma-ativa__botao:disabled {
-  background: #f8f8f8;
-  color: #fff;
-  cursor: not-allowed;
-}
-
-@media (max-width: 360px) {
-  .forma-ativa__balao span {
-    font-size: 13px;
-  }
-
-  .forma-ativa__titulo {
-    font-size: 24px;
-  }
-
-  .forma-ativa__opcao {
-    font-size: 13px;
-  }
 }
