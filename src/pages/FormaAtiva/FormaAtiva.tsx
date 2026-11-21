@@ -1,20 +1,9 @@
 import illustration from "../../assets/forma-ativa.svg";
+import { questions } from "../../domain/questions";
 import type { Answer } from "../../domain/expedition";
-import type { Question } from "../../components/ActivityResponse/ActivityResponse";
 import { ActivityLayout } from "../../components/ActivityLayout/ActivityLayout";
 import { ChoiceQuestion } from "../../components/ActivityResponse/ActivityResponse";
 import "./FormaAtiva.css";
-
-const question: Question = {
-  prompt: "As duas formas de CHClBrF desviam a luz polarizada de modos:",
-  options: [
-    "A. Idênticos — desviam a luz para o mesmo lado",
-    "B. Opostos — uma desvia para a direita (+), a outra para a esquerda (−)",
-    "C. Nenhuma das formas desvia a luz",
-    "D. Aleatórios — depende da temperatura",
-  ],
-  correct: 1,
-};
 
 export function FormaAtiva({ onContinue }: { onContinue: (answer: Answer) => void }) {
   return (
@@ -26,12 +15,13 @@ export function FormaAtiva({ onContinue }: { onContinue: (answer: Answer) => voi
       guidance={
         <>
           Dois frascos: (+) e (−), pelo desvio da luz.<br />
-          Somente uma forma desvia a luz para a direita. Observe a posição do Br em cada forma.
+          Observe na ilustração o sentido do desvio indicado para cada forma.
         </>
       }
     >
       <ChoiceQuestion
-        question={question}
+        question={questions["active-form"]}
+        reviewOnSelect
         onContinue={onContinue}
         illustration={
           <img

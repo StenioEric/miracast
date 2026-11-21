@@ -1,7 +1,9 @@
 import { useState } from "react";
 
+import { questions } from "../../domain/questions";
 import type { Answer } from "../../domain/expedition";
 import type { Ligands } from "../../utils/moleculeGeometry";
+import { ChoiceQuestion } from "../../components/ActivityResponse/ActivityResponse";
 import { ActivityLayout } from "../../components/ActivityLayout/ActivityLayout";
 import { Button } from "../../components/Button/Button";
 import { ContentCard } from "../../components/ContentCard/ContentCard";
@@ -9,11 +11,6 @@ import { Molecule } from "../../components/Molecule/Molecule";
 import "./MonteCHClBrF.css";
 
 const atoms = ["H", "Cl", "Br", "F"] as const;
-const chiralityAnswers = [
-  { value: "A. Sim — possui 4 átomos todos diferentes", correct: true },
-  { value: "B. Não — ainda faltam ligações", correct: false },
-] as const;
-
 type Atom = (typeof atoms)[number];
 
 export function MonteCHClBrF({
@@ -22,7 +19,6 @@ export function MonteCHClBrF({
   onContinue: (answer: Answer) => void;
 }) {
   const [ligands, setLigands] = useState<Ligands>(["", "", "", ""]);
-  const [selectedAnswer, setSelectedAnswer] = useState<Answer | null>(null);
   const complete = ligands.every((ligand) => ligand !== "");
 
   function placeAtom(atom: Atom) {
@@ -38,21 +34,15 @@ export function MonteCHClBrF({
   function removeAtom(index: number) {
     const next: [...Ligands] = [...ligands];
     next[index] = "";
-    setSelectedAnswer(null);
     setLigands(next);
   }
 
   function clearPositions() {
-    setSelectedAnswer(null);
     setLigands(["", "", "", ""]);
   }
 
-  function continueActivity() {
-    if (!complete || !selectedAnswer) return;
-    onContinue({
-      value: `${ligands.join(", ")}\n${selectedAnswer.value}`,
-      correct: selectedAnswer.correct,
-    });
+  function continueActivity(answer: Answer) {
+    if (complete) onContinue({ ...answer, value: `${ligands.join(", ")}\n${answer.value}` });
   }
 
   return (
@@ -93,31 +83,12 @@ export function MonteCHClBrF({
         <div className="monte-chclbrf__divider" />
 
         {complete ? (
-          <>
-            <div className="monte-chclbrf__completo" role="status">
-              <strong>CHClBrF montado</strong>
-              <span>O carbono central está ligado a quatro átomos diferentes.</span>
-            </div>
-
-            <section className="monte-chclbrf__pergunta" aria-labelledby="monte-chclbrf-pergunta">
-              <h2 id="monte-chclbrf-pergunta">Com os 4 átomos posicionados, esse carbono é quiral?</h2>
-              {chiralityAnswers.map((answer) => (
-                <button
-                  key={answer.value}
-                  type="button"
-                  aria-pressed={selectedAnswer === answer}
-                  className="monte-chclbrf__opcao"
-                  onClick={() => setSelectedAnswer(answer)}
-                >
-                  {answer.value}
-                </button>
-              ))}
-            </section>
-          </>
+          <div className="monte-chclbrf__completo" role="status">
+            <strong>CHClBrF montado</strong>
+            <span>O carbono central está ligado a quatro átomos diferentes.</span>
+          </div>
         ) : (
-          <p className="monte-chclbrf__instrucao">
-            Escolha H, Cl, Br e F. Cada átomo pode ser colocado uma única vez.
-          </p>
+          <p className="monte-chclbrf__instrucao">Escolha H, Cl, Br e F. Cada átomo pode ser colocado uma única vez.</p>
         )}
 
         <div className="monte-chclbrf__atomos" aria-label="Átomos disponíveis">
@@ -137,22 +108,13 @@ export function MonteCHClBrF({
           })}
         </div>
 
-        {complete ? (
-          <Button
-            onClick={continueActivity}
-            disabled={!selectedAnswer}
-          >
-            Continuar
-          </Button>
-        ) : (
-          <Button variant="secondary"
-            disabled={!ligands.some((ligand) => ligand)}
-            onClick={clearPositions}
-          >
+        {!complete && (
+          <Button variant="secondary" disabled={!ligands.some(Boolean)} onClick={clearPositions}>
             Limpar posições
           </Button>
         )}
       </ContentCard>
+      {complete && <ChoiceQuestion question={questions["build-molecule"]} reviewOnSelect onContinue={continueActivity} />}
     </ActivityLayout>
   );
 }

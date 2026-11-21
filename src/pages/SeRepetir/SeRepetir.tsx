@@ -1,7 +1,9 @@
 import { useState } from "react";
 
+import { questions } from "../../domain/questions";
 import type { Answer } from "../../domain/expedition";
 import type { Ligands } from "../../utils/moleculeGeometry";
+import { ChoiceQuestion } from "../../components/ActivityResponse/ActivityResponse";
 import { ActivityLayout } from "../../components/ActivityLayout/ActivityLayout";
 import { Button } from "../../components/Button/Button";
 import { ContentCard } from "../../components/ContentCard/ContentCard";
@@ -17,30 +19,7 @@ export function SeRepetir({
   onContinue: (answer: Answer) => void;
 }) {
   const [replaced, setReplaced] = useState(false);
-  const [selected, setSelected] = useState<"A" | "B" | null>(null);
   const ligands = replaced ? replacedLigands : chclbrf;
-  const correct = selected === "B";
-
-  function replaceLigand() {
-    setReplaced(true);
-    setSelected(null);
-  }
-
-  function resetLigand() {
-    setReplaced(false);
-    setSelected(null);
-  }
-
-  function continueActivity() {
-    if (!replaced || selected === null) return;
-
-    onContinue({
-      value: selected === "A"
-        ? "Sim, ainda há quatro ligações"
-        : "Não, há dois hidrogênios iguais",
-      correct,
-    });
-  }
 
   return (
     <ActivityLayout
@@ -79,48 +58,17 @@ export function SeRepetir({
         </div>
 
         {!replaced ? (
-          <Button onClick={replaceLigand}>
+          <Button onClick={() => setReplaced(true)}>
             Substituir F por H
           </Button>
         ) : (
-          <Button variant="secondary" onClick={resetLigand}>
+          <Button variant="secondary" onClick={() => setReplaced(false)}>
             Voltar para CHClBrF
           </Button>
         )}
       </ContentCard>
 
-      {replaced && (
-        <section className="se-repetir__pergunta" aria-labelledby="se-repetir-pergunta">
-          <h2 id="se-repetir-pergunta">
-            Depois da substituição, esse carbono permanece um centro quiral?
-          </h2>
-
-          <button
-            type="button"
-            aria-pressed={selected === "A"}
-            className="se-repetir__opcao"
-            onClick={() => setSelected("A")}
-          >
-            A. Sim, ainda há quatro ligações
-          </button>
-
-          <button
-            type="button"
-            aria-pressed={selected === "B"}
-            className="se-repetir__opcao"
-            onClick={() => setSelected("B")}
-          >
-            B. Não, há dois hidrogênios iguais
-          </button>
-
-          <Button
-            disabled={selected === null}
-            onClick={continueActivity}
-          >
-            Continuar
-          </Button>
-        </section>
-      )}
+      {replaced && <ChoiceQuestion question={questions["repeat-ligand"]} reviewOnSelect onContinue={onContinue} />}
     </ActivityLayout>
   );
 }

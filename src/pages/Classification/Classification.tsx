@@ -1,29 +1,25 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 import tabelaClassificacao from "../../assets/tabela_tela3.svg";
-import type { Answer } from "../../domain/expedition";
 import { ActivityLayout } from "../../components/ActivityLayout/ActivityLayout";
+import { AnswerFeedback } from "../../components/ActivityResponse/AnswerFeedback";
+import { AnswerOption } from "../../components/ActivityResponse/AnswerOption";
 import { Button } from "../../components/Button/Button";
 import { ContentCard } from "../../components/ContentCard/ContentCard";
 import { PageFooter } from "../../components/PageLayout/PageLayout";
+import type { Answer } from "../../domain/expedition";
+import { classificationItems, evaluateClassification } from "../../domain/questions";
+import type { Category } from "../../domain/questions";
 import "./Classification.css";
 
-const objects = [
-  { id: "folha", name: "Folha de papel", category: "plano" },
-  { id: "circulo", name: "Círculo", category: "plano" },
-  { id: "cubo", name: "Cubo", category: "espacial" },
-  { id: "piramide", name: "Pirâmide", category: "espacial" },
-  { id: "esfera", name: "Esfera", category: "espacial" },
-] as const;
-
-type ObjectId = (typeof objects)[number]["id"];
-type Category = (typeof objects)[number]["category"];
+type ObjectId = (typeof classificationItems)[number]["id"];
 
 export function Classification({ onContinue }: { onContinue: (answer: Answer) => void }) {
+  const feedbackRef = useRef<HTMLDivElement>(null);
   const [answers, setAnswers] = useState<Partial<Record<ObjectId, Category>>>({});
   const [submitted, setSubmitted] = useState(false);
-  const allClassified = objects.every(({ id }) => answers[id] !== undefined);
-  const correct = objects.every(({ id, category }) => answers[id] === category);
+  const assessment = evaluateClassification(answers);
+  const feedback = submitted ? assessment : undefined;
 
   function chooseCategory(objectId: ObjectId, category: Category) {
     setAnswers((current) => ({ ...current, [objectId]: category }));
@@ -31,10 +27,12 @@ export function Classification({ onContinue }: { onContinue: (answer: Answer) =>
   }
 
   function handleAction() {
+    if (!assessment) return;
     if (submitted) {
-      onContinue({ value: objects.map(({ id, name }) => `${name}: ${answers[id]}`).join(", "), correct });
+      onContinue(assessment.answer);
     } else {
       setSubmitted(true);
+      requestAnimationFrame(() => feedbackRef.current?.focus());
     }
   }
 
@@ -46,29 +44,35 @@ export function Classification({ onContinue }: { onContinue: (answer: Answer) =>
       title="Missão 1.1 — Plano ou espacial?"
       guidance="Classifique cada representação como plana ou espacial. Considere a folha como uma superfície ideal, sem espessura."
       footer={<PageFooter>
-        <Button disabled={!allClassified} onClick={handleAction}>
+        <Button disabled={!assessment} onClick={handleAction}>
           {submitted ? "Continuar" : "Classificar todos"}
         </Button>
       </PageFooter>}
     >
       <img className="activity-illustration" src={tabelaClassificacao}
         alt="Galeria com folha, círculo, cubo, pirâmide e esfera." width="367" height="171" />
-      {objects.map(({ id, name }) => (
-        <ContentCard key={id} aria-labelledby={`classificacao-${id}`}>
-          <h2 id={`classificacao-${id}`}>{name}</h2>
-          <div className="classificacao__categorias" role="group" aria-label={`Classificação de ${name}`}>
-            {(["plano", "espacial"] as const).map((category) => (
-              <Button variant="secondary" aria-pressed={answers[id] === category}
-                key={category} onClick={() => chooseCategory(id, category)}>
-                {category}
-              </Button>
+      {classificationItems.map(({ id, name, category }) => (
+        <ContentCard key={id} aria-label={`Classificação de ${name}`}>
+          <fieldset className="activity-options classificacao__categorias">
+            <legend>{name}</legend>
+            {(["plano", "espacial"] as const).map((option) => (
+              <AnswerOption key={option} name={id} label={option} selected={answers[id] === option}
+                correct={submitted ? option === category : undefined} onSelect={() => chooseCategory(id, option)} />
             ))}
-          </div>
+          </fieldset>
         </ContentCard>
       ))}
-      <p role="status">
-        {submitted && (correct ? "Classificação correta!" : "Folha e círculo são planos nesta atividade. Cubo, pirâmide e esfera são espaciais.")}
-      </p>
+      <AnswerFeedback ref={feedbackRef} correct={feedback?.answer.correct}>
+        {feedback?.answer.correct ? (
+          <p>Folha e círculo foram representados em um plano. Cubo, pirâmide e esfera ocupam três dimensões.</p>
+        ) : feedback && (
+          <ul className="classificacao__feedback">
+            {feedback.mistakes.map(({ id, name, explanation }) => (
+              <li key={id}><strong>{name}.</strong> {explanation}</li>
+            ))}
+          </ul>
+        )}
+      </AnswerFeedback>
     </ActivityLayout>
   );
 }

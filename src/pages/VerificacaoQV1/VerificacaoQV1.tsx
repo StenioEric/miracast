@@ -1,20 +1,9 @@
 import illustration from "../../assets/verif-qv1.svg";
+import { questions } from "../../domain/questions";
 import type { Answer } from "../../domain/expedition";
-import type { Question } from "../../components/ActivityResponse/ActivityResponse";
 import { ActivityLayout } from "../../components/ActivityLayout/ActivityLayout";
 import { ChoiceQuestion } from "../../components/ActivityResponse/ActivityResponse";
 import "./VerificacaoQV1.css";
-
-const question: Question = {
-  prompt: "Quando um objeto rígido gira, o que muda?",
-  options: [
-    "A forma do objeto",
-    "A orientação do objeto",
-    "A identidade do objeto",
-  ],
-  correct: 1,
-  explanation: "Uma rotação rígida muda a orientação do objeto. Forma, tamanho e identidade permanecem iguais.",
-};
 
 export function VerificacaoQV1({ onContinue }: { onContinue: (answer: Answer) => void }) {
   return (
@@ -25,7 +14,7 @@ export function VerificacaoQV1({ onContinue }: { onContinue: (answer: Answer) =>
       guidance="Ao girar um objeto rígido, observe com atenção o que realmente mudou."
     >
       <ChoiceQuestion
-        question={question}
+        question={questions["qv1"]}
         onContinue={onContinue}
         incorrectContinueLabel="Continuar mesmo assim"
         illustration={

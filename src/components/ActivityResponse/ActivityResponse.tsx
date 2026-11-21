@@ -1,27 +1,23 @@
 import { useId, useRef, useState } from "react";
 import type { ReactNode } from "react";
 
+import { evaluateQuestion } from "../../domain/questions";
+import type { Question } from "../../domain/questions";
 import type { Answer } from "../../domain/expedition";
 import { Button } from "../Button/Button";
 import { ContentCard } from "../ContentCard/ContentCard";
 import { PageFooter } from "../PageLayout/PageLayout";
+import { AnswerFeedback } from "./AnswerFeedback";
+import { AnswerOption } from "./AnswerOption";
 import "./ActivityResponse.css";
-
-export type Question = {
-  prompt: string;
-  options: readonly [string, string, ...string[]];
-  correct: number;
-  explanation?: string;
-};
 
 type ChoiceQuestionProps = {
   question: Question;
   onContinue: (answer: Answer) => void;
   onEvaluate?: (correct: boolean) => void;
   requireCorrect?: boolean;
+  reviewOnSelect?: boolean;
   illustration?: ReactNode;
-  verifyLabel?: string;
-  continueLabel?: string;
   incorrectContinueLabel?: string;
 };
 
@@ -29,34 +25,36 @@ export function ChoiceQuestion({
   question,
   onContinue,
   onEvaluate,
-  requireCorrect,
+  requireCorrect = false,
+  reviewOnSelect = false,
   illustration,
-  verifyLabel = "Verificar resposta",
-  continueLabel = "Continuar",
-  incorrectContinueLabel = continueLabel,
+  incorrectContinueLabel = "Continuar",
 }: ChoiceQuestionProps) {
   const groupName = useId();
   const optionsRef = useRef<HTMLFieldSetElement>(null);
+  const feedbackRef = useRef<HTMLDivElement>(null);
   const [selected, setSelected] = useState<number | null>(null);
   const [submitted, setSubmitted] = useState(false);
-  const correct = selected === question.correct;
-  const needsReview = question.explanation !== undefined && !submitted;
-  const retry = submitted && requireCorrect && !correct;
-  let actionLabel = correct ? continueLabel : incorrectContinueLabel;
-  if (needsReview) actionLabel = verifyLabel;
+  const evaluated = selected === null ? undefined : evaluateQuestion(question, selected);
+  const needsConfirmation = !reviewOnSelect && !submitted;
+  const feedback = needsConfirmation ? undefined : evaluated;
+  const retry = feedback?.answer.correct === false && requireCorrect;
+  let actionLabel = feedback?.answer.correct === false ? incorrectContinueLabel : "Continuar";
+  if (needsConfirmation) actionLabel = "Verificar resposta";
   if (retry) actionLabel = "Tentar novamente";
 
   function handleAction() {
-    if (selected === null) return;
-    if (needsReview) {
+    if (!evaluated) return;
+    if (needsConfirmation) {
       setSubmitted(true);
-      onEvaluate?.(correct);
+      onEvaluate?.(evaluated.answer.correct);
+      requestAnimationFrame(() => feedbackRef.current?.focus());
     } else if (retry) {
       setSelected(null);
       setSubmitted(false);
       requestAnimationFrame(() => optionsRef.current?.querySelector("input")?.focus());
     } else {
-      onContinue({ value: question.options[selected], correct });
+      onContinue(evaluated.answer);
     }
   }
 
@@ -67,28 +65,16 @@ export function ChoiceQuestion({
         <fieldset ref={optionsRef} className="activity-options" disabled={submitted}>
           <legend>{question.prompt}</legend>
           {question.options.map((option, index) => (
-            <label key={option} data-selected={selected === index}>
-              <input
-                type="radio"
-                name={groupName}
-                checked={selected === index}
-                onChange={() => setSelected(index)}
-              />
-              {option}
-            </label>
+            <AnswerOption key={option.value} name={groupName} label={option.label ?? option.value}
+              selected={selected === index} correct={feedback?.answer.correct} onSelect={() => setSelected(index)} />
           ))}
         </fieldset>
-        <div role="status">
-          {submitted && (
-            <p className="activity-feedback" data-correct={correct}>
-              <strong>{correct ? "Resposta correta. " : "Vamos revisar. "}</strong>
-              {question.explanation}
-            </p>
-          )}
-        </div>
+        <AnswerFeedback ref={feedbackRef} correct={feedback?.answer.correct}>
+          {feedback && <p>{feedback.explanation}</p>}
+        </AnswerFeedback>
       </ContentCard>
       <PageFooter>
-        <Button disabled={selected === null} onClick={handleAction}>{actionLabel}</Button>
+        <Button disabled={!evaluated} onClick={handleAction}>{actionLabel}</Button>
       </PageFooter>
     </div>
   );

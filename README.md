@@ -34,7 +34,7 @@ O código identifica uma sala armazenada na origem da aplicação. Salas, partic
 ```sh
 npm run lint
 npm run build
-node --test --test-isolation=none tests/expedition.test.mjs
+node --test --test-isolation=none tests/*.test.mjs
 ```
 
 O build inclui a checagem de tipos. Os testes cobrem a sequência de frames, validação de sala, participantes homônimos, bloqueio antes do início, retomada dos registros, rejeição de avanços fora de ordem e cálculo da pontuação.

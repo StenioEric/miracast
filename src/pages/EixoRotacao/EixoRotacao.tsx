@@ -1,5 +1,6 @@
 import { useState } from "react";
 
+import { questions } from "../../domain/questions";
 import type { Answer } from "../../domain/expedition";
 import { ActivityLayout } from "../../components/ActivityLayout/ActivityLayout";
 import { ChoiceQuestion } from "../../components/ActivityResponse/ActivityResponse";
@@ -41,17 +42,7 @@ export function EixoRotacao({ onContinue }: { onContinue: (answer: Answer) => vo
           <input type="range" min={0} max={360} value={angle} onChange={(event) => setAngle(Number(event.target.value))} />
         </label>
       </ContentCard>
-      <ChoiceQuestion onContinue={onContinue} question={{
-        prompt: "Ao girar em torno do seu eixo, a pirâmide mudou de forma?",
-        options: [
-          "Sim, a aparência diferente indica outra figura.",
-          "Não, a pirâmide é a mesma em outra orientação.",
-          "Sim, girar sempre cria um objeto novo.",
-          "Depende do ângulo em que eu parar.",
-        ],
-        correct: 1,
-        explanation: "A rotação altera a orientação da pirâmide. A forma e a identidade permanecem iguais.",
-      }} />
+      <ChoiceQuestion onContinue={onContinue} question={questions["axis-rotation"]} />
     </ActivityLayout>
   );
 }

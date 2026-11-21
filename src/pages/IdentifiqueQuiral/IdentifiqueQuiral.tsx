@@ -1,20 +1,9 @@
 import illustration from "../../assets/ident-quiral.svg";
+import { questions } from "../../domain/questions";
 import type { Answer } from "../../domain/expedition";
-import type { Question } from "../../components/ActivityResponse/ActivityResponse";
 import { ActivityLayout } from "../../components/ActivityLayout/ActivityLayout";
 import { ChoiceQuestion } from "../../components/ActivityResponse/ActivityResponse";
 import "./IdentifiqueQuiral.css";
-
-const question: Question = {
-  prompt: "Qual modelo representa um carbono quiral?",
-  options: [
-    "M1",
-    "M2",
-    "M3",
-  ],
-  correct: 1,
-  explanation: "Em CHClBrF, os ligantes H, Cl, Br e F são todos distintos.",
-};
 
 export function IdentifiqueQuiral({ onContinue }: { onContinue: (answer: Answer) => void }) {
   return (
@@ -25,7 +14,7 @@ export function IdentifiqueQuiral({ onContinue }: { onContinue: (answer: Answer)
       guidance="Observe os três modelos. Identifique aquele que tem um carbono ligado a quatro grupos diferentes."
     >
       <ChoiceQuestion
-        question={question}
+        question={questions["identify-chiral"]}
         onContinue={onContinue}
         illustration={
           <img
@@ -33,7 +22,7 @@ export function IdentifiqueQuiral({ onContinue }: { onContinue: (answer: Answer)
             src={illustration}
             width="364"
             height="269"
-            alt="Três modelos moleculares para comparação"
+            alt="M1: H, H, Cl e F. M2: H, Cl, Br e F. M3: Br, Cl, Cl e H."
           />
         }
       />

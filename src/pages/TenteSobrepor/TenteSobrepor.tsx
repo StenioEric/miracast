@@ -1,5 +1,6 @@
 import { useState } from "react";
 
+import { questions } from "../../domain/questions";
 import type { Answer } from "../../domain/expedition";
 import { ActivityLayout } from "../../components/ActivityLayout/ActivityLayout";
 import { ChoiceQuestion } from "../../components/ActivityResponse/ActivityResponse";
@@ -12,7 +13,7 @@ export function TenteSobrepor({ onContinue }: { onContinue: (answer: Answer) => 
   const [overlay, setOverlay] = useState(false);
   const [checked, setChecked] = useState(false);
   return (
-    <ActivityLayout step="superposition" frameInContent>
+    <ActivityLayout step="superposition" title="Tente sobrepor" frameInContent>
       <div className="activity-comparison" data-node-id={checked ? "2003:623" : "2003:1089"}>
         <ContentCard>
           <h2>{checked ? "Correto: as imagens não se sobrepõem" : "Compare com a imagem no espelho"}</h2>
@@ -23,12 +24,7 @@ export function TenteSobrepor({ onContinue }: { onContinue: (answer: Answer) => 
           </div>
           <label><input type="checkbox" checked={overlay} onChange={(event) => setOverlay(event.target.checked)} /> Mostrar a referência no mesmo diagrama</label>
         </ContentCard>
-        <ChoiceQuestion requireCorrect onEvaluate={setChecked} onContinue={onContinue} question={{
-          prompt: "É possível alinhar simultaneamente os quatro ligantes correspondentes só girando o modelo espelhado?",
-          options: ["Sim, os quatro ligantes podem coincidir", "Não, os modelos são imagens especulares não sobreponíveis"],
-          correct: 1,
-          explanation: "Um espelhamento inverte o arranjo dos ligantes. A rotação preserva esse arranjo, por isso o alinhamento simultâneo é impossível.",
-        }} />
+        <ChoiceQuestion requireCorrect onEvaluate={setChecked} onContinue={onContinue} question={questions["superposition"]} />
       </div>
     </ActivityLayout>
   );
