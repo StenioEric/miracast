@@ -37,7 +37,7 @@ npm run build
 node --test --test-isolation=none tests/*.test.mjs
 ```
 
-O build inclui a checagem de tipos. Os testes cobrem a sequência de frames, validação de sala, participantes homônimos, bloqueio antes do início, retomada dos registros, rejeição de avanços fora de ordem e cálculo da pontuação.
+O build inclui a checagem de tipos. Os testes cobrem a sequência de frames, validação de sala, participantes homônimos, bloqueio antes do início, retomada dos registros, rejeição de avanços fora de ordem e cálculo da pontuação. Eles também verificam o feedback de cada alternativa, os estados iniciais dos botões e a estrutura dos componentes compartilhados.
 
 ## Pendências
 
