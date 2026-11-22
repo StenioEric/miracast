@@ -9,9 +9,10 @@ import "./ExpeditionEntry.css";
 type ExpeditionEntryProps = {
   onJoin: (code: string, name: string) => void;
   onBack: () => void;
+  pending?: boolean;
 };
 
-export function ExpeditionEntry({ onJoin, onBack }: ExpeditionEntryProps) {
+export function ExpeditionEntry({ onJoin, onBack, pending }: ExpeditionEntryProps) {
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const values = new FormData(event.currentTarget);
@@ -24,7 +25,7 @@ export function ExpeditionEntry({ onJoin, onBack }: ExpeditionEntryProps) {
       illustration={decoration}
       header={<PageHeader brand title="Entrar na expedição" />}
       footer={<PageFooter credits="full">
-        <Button variant="link" onClick={onBack}>Voltar à seleção de perfil</Button>
+        <Button variant="link" disabled={pending} onClick={onBack}>Voltar à seleção de perfil</Button>
       </PageFooter>}
     >
       <ContentCard as="form" onSubmit={submit}>
@@ -40,7 +41,7 @@ export function ExpeditionEntry({ onJoin, onBack }: ExpeditionEntryProps) {
           <input className="form-control" name="name" maxLength={100}
             placeholder="Seu nome completo" autoComplete="name" required />
         </label>
-        <Button type="submit">Entrar na expedição</Button>
+        <Button type="submit" disabled={pending}>{pending ? "Aguarde…" : "Entrar na expedição"}</Button>
       </ContentCard>
     </PageLayout>
   );

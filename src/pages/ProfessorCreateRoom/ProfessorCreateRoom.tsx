@@ -8,9 +8,10 @@ import "./ProfessorCreateRoom.css";
 type ProfessorCreateRoomProps = {
   onBackToDashboard: () => void;
   onRoomCreated: (name: string) => void;
+  pending?: boolean;
 };
 
-export function ProfessorCreateRoom({ onBackToDashboard, onRoomCreated }: ProfessorCreateRoomProps) {
+export function ProfessorCreateRoom({ onBackToDashboard, onRoomCreated, pending }: ProfessorCreateRoomProps) {
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     onRoomCreated(String(new FormData(event.currentTarget).get("roomName")));
@@ -19,7 +20,7 @@ export function ProfessorCreateRoom({ onBackToDashboard, onRoomCreated }: Profes
   return (
     <ProfessorLayout frame="2020:30"
       title="Criar nova sala"
-      navigation={<Button variant="link" onClick={onBackToDashboard}>Voltar ao painel</Button>}
+      navigation={<Button variant="link" disabled={pending} onClick={onBackToDashboard}>Voltar ao painel</Button>}
     >
       <ContentCard as="form" onSubmit={submit}>
         <p>Defina um nome para identificar sua turma.</p>
@@ -27,7 +28,7 @@ export function ProfessorCreateRoom({ onBackToDashboard, onRoomCreated }: Profes
           Nome da sala
           <input className="form-control" name="roomName" placeholder="Ex.: Estereoquímica – Turma A" maxLength={100} required />
         </label>
-        <Button type="submit">Criar sala</Button>
+        <Button type="submit" disabled={pending}>{pending ? "Aguarde…" : "Criar sala"}</Button>
       </ContentCard>
     </ProfessorLayout>
   );

@@ -132,3 +132,21 @@ test("o layout de atividade exibe cabeçalho, progresso e rodapé compartilhados
   assert.match(markup, /<progress [^>]*max="17" aria-label="Progresso da expedição"/);
   assert.match(markup, /<footer class="page-footer">Ação da atividade<\/footer>/);
 });
+
+test("o login do professor pede e-mail e senha e exige configuração do serviço", async () => {
+  const { ProfessorLogin } = await server.ssrLoadModule("/src/pages/ProfessorLogin/ProfessorLogin.tsx");
+  const markup = renderToStaticMarkup(createElement(ProfessorLogin, {
+    configured: false,
+    pending: false,
+    error: "",
+    onBackToStudent() {},
+    onLogin() {},
+  }));
+
+  assert.match(markup, /data-node-id="2020:2"/);
+  assert.match(markup, /<form [^>]*method="post"/);
+  assert.match(markup, /<input [^>]*type="email"[^>]*autoComplete="username"/i);
+  assert.match(markup, /<input [^>]*type="password"[^>]*autoComplete="current-password"/i);
+  assert.match(markup, /<button disabled="" type="submit"[^>]*>Entrar<\/button>/);
+  assert.match(markup, /Voltar à entrada do aluno/);
+});

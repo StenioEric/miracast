@@ -1,1 +1,30 @@
-/* A aparência desta página usa os estilos compartilhados dos componentes. */
+.professor-login .page__shell {
+  padding-block-start: var(--space-8);
+}
+
+.professor-login .page-header__label {
+  padding-block: var(--space-2);
+  border: var(--border-size) solid var(--ink);
+  background: var(--white);
+  color: var(--ink);
+  text-transform: uppercase;
+}
+
+.professor-login .content-card h2 {
+  font-size: var(--font-title);
+}
+
+.professor-login .form-control {
+  padding-inline: var(--space-4);
+  border-color: var(--ink);
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow);
+}
+
+.professor-login .page__shell > .page-footer {
+  margin-top: 0;
+}
+
+.professor-login .page-footer__credits {
+  order: -1;
+}

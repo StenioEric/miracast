@@ -124,7 +124,7 @@ export function createRoomStore(storage: Storage, notify: () => void = () => {})
   };
 }
 
-function generateRoomCode() {
+export function generateRoomCode() {
   return Array.from(
     globalThis.crypto.getRandomValues(new Uint8Array(6)),
     (value) => codeAlphabet[value % codeAlphabet.length],
