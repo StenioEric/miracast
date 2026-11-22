@@ -36,7 +36,12 @@ test("a questão com revisão imediata mantém o botão de continuar desabilitad
   assert.doesNotMatch(markup, /Verificar resposta/);
 });
 
-for (const [step, frame] of [["lactic-acid", "2003:410"], ["compare-forms", "2003:348"], ["qv4", "2003:308"]]) {
+for (const [step, frame] of [
+  ["lactic-acid", "2003:410"],
+  ["compare-forms", "2003:348"],
+  ["qv4", "2003:308"],
+  ["augmented-reality", "2003:264"],
+]) {
   test(`${step} usa o layout compartilhado e exibe Continuar desabilitado antes da seleção`, async () => {
     const { ActivityRoutes } = await server.ssrLoadModule("/src/navigation/ActivityRoutes.tsx");
     const markup = renderToStaticMarkup(createElement(ActivityRoutes, { step, onContinue() {} }));
@@ -51,6 +56,19 @@ for (const [step, frame] of [["lactic-acid", "2003:410"], ["compare-forms", "200
     assert.match(markup, /<footer class="page-footer"><button disabled=""[^>]*>Continuar<\/button>/);
   });
 }
+
+test("o botão do cristal em RA fica desabilitado e informa a indisponibilidade", async () => {
+  const { CristalRealidadeAumentada } = await server.ssrLoadModule(
+    "/src/pages/CristalRealidadeAumentada/CristalRealidadeAumentada.tsx",
+  );
+  const markup = renderToStaticMarkup(createElement(CristalRealidadeAumentada, { onContinue() {} }));
+  const [, descriptionId] = markup.match(
+    /<button disabled="" aria-describedby="([^"]+)"[^>]*>.*?ABRIR O CRISTAL EM RA<\/button>/,
+  ) ?? [];
+
+  assert.ok(descriptionId);
+  assert.ok(markup.includes(`id="${descriptionId}" class="crystal-preview__availability">Experiência em RA ainda indisponível.`));
+});
 
 test("o diagrama do ácido lático oferece um botão para cada carbono", async () => {
   const { AcidoLatico } = await server.ssrLoadModule("/src/pages/AcidoLatico/AcidoLatico.tsx");

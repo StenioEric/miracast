@@ -257,6 +257,28 @@ export const questions = {
       },
     ],
   },
+  "augmented-reality": {
+    prompt: "Ao comparar as duas formas em RA, o que você observou?",
+    correct: 1,
+    options: [
+      {
+        value: "A. As duas formas coincidiram perfeitamente ao girar",
+        explanation: "Uma rotação pode alinhar alguns átomos correspondentes. A disposição dos ligantes do CHClBrF impede que todos os quatro coincidam ao mesmo tempo com os da imagem espelhada.",
+      },
+      {
+        value: "B. Por mais que girassem juntas, os átomos nunca coincidiam — são não-superponíveis",
+        explanation: "As duas formas do CHClBrF são imagens espelhadas com configurações espaciais opostas. Nenhuma rotação permite sobrepor simultaneamente os quatro ligantes correspondentes.",
+      },
+      {
+        value: "C. As duas formas se fundiram em uma só",
+        explanation: "Girar os modelos muda a orientação e conserva a configuração de cada molécula. Mesmo quando parte dos modelos ocupa a mesma posição, as duas formas continuam distintas.",
+      },
+      {
+        value: "D. Uma forma desapareceu ao girar",
+        explanation: "Uma rotação conserva os átomos e as ligações de cada modelo. As duas formas continuam presentes e mantêm suas configurações espaciais opostas.",
+      },
+    ],
+  },
   "qv5": {
     prompt: "Qual procedimento distingue um modelo quiral de um aquiral?",
     correct: 1,

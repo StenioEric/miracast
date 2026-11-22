@@ -17,6 +17,7 @@ const expectedCorrectOptions = {
   "lactic-acid": 1,
   "compare-forms": 1,
   qv4: 2,
+  "augmented-reality": 1,
   qv5: 1,
 };
 

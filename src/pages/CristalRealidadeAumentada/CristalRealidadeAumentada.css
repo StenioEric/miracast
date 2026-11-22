@@ -1,1 +1,12 @@
-/* A aparência desta página usa os estilos compartilhados dos componentes. */
+.crystal-preview {
+  text-align: center;
+}
+
+.crystal-preview img {
+  margin-inline: auto;
+}
+
+.crystal-preview__availability {
+  color: var(--muted);
+  font-size: var(--font-small);
+}

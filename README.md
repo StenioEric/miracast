@@ -42,7 +42,7 @@ O build inclui a checagem de tipos. Os testes cobrem a sequência de frames, val
 ## Pendências
 
 - **Figma.** Os IDs foram preservados no código. A comparação visual precisa da URL do arquivo Figma Design, além dos IDs. A versão funcional da entrada parte do frame `7:101` e inclui código e nome. A comparação com o frame `15:33` e a confirmação dos enunciados originais continuam pendentes.
-- **Realidade aumentada.** O frame `2003:264` oferece uma alternativa rotacionável na tela e identifica a indisponibilidade da câmera. A versão com RA precisa do modelo do cristal, da definição de como ele será posicionado no ambiente e de validação em dispositivos compatíveis.
+- **Realidade aumentada.** Na Tela 19 (frame `2003:264`), o botão de RA está desabilitado e a questão sobre a sobreposição dos enantiômeros está disponível. A experiência em RA ou 3D será aberta em uma nova aba quando estiver implementada.
 - **Supabase.** Para compartilhar salas entre dispositivos, será necessário um projeto configurado, autenticação do professor, identidade de aluno, tabelas de salas, participantes e respostas, e políticas que limitem a leitura e escrita à sala e ao perfil corretos. O ingresso por código e a gravação do avanço devem ser validados no servidor. O início pode então ser propagado aos alunos pela atualização da sala. O frontend deve usar apenas as credenciais publicáveis do projeto.
 - **Resultados acadêmicos.** Relatórios de pesquisa e diploma requerem definição do conteúdo e dos critérios de emissão.
 
