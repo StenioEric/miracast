@@ -83,6 +83,24 @@ test("o diagrama do ácido lático oferece um botão para cada carbono", async (
   );
 });
 
+test("o certificado de conclusão usa o nome do aluno e apresenta as cinco conquistas", async () => {
+  const { ActivityRoutes } = await server.ssrLoadModule("/src/navigation/ActivityRoutes.tsx");
+  const markup = renderToStaticMarkup(createElement(ActivityRoutes, {
+    step: "master",
+    studentName: "Júlia & José",
+    answers: { qv5: { value: "B", correct: true } },
+    onFinish() {},
+  }));
+
+  assert.match(markup, /data-node-id="2003:186"/);
+  assert.match(markup, /<h1>Mestre do Cristal!<\/h1>/);
+  assert.match(markup, /<p class="master-certificate__name">Júlia &amp; José<\/p>/);
+  const phases = [...markup.matchAll(/<p>Fase (\d)<\/p>/g)].map(([, phase]) => phase);
+  assert.deepEqual(phases, ["1", "2", "3", "4", "5"]);
+  assert.match(markup, /1 de 1 respostas avaliadas corretas/);
+  assert.match(markup, /<footer class="page-footer"><button[^>]*>.*SAIR<\/button>/);
+});
+
 test("o feedback apresenta a explicação em uma região de status e a alternativa indica o erro", async () => {
   const { AnswerFeedback } = await server.ssrLoadModule("/src/components/ActivityResponse/AnswerFeedback.tsx");
   const { AnswerOption } = await server.ssrLoadModule("/src/components/ActivityResponse/AnswerOption.tsx");
