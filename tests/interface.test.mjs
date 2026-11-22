@@ -36,6 +36,22 @@ test("a questão com revisão imediata mantém o botão de continuar desabilitad
   assert.doesNotMatch(markup, /Verificar resposta/);
 });
 
+test("a Tela 17 associa as quatro alternativas ao enunciado no cartão da ilustração", async () => {
+  const { ActivityRoutes } = await server.ssrLoadModule("/src/navigation/ActivityRoutes.tsx");
+  const markup = renderToStaticMarkup(createElement(ActivityRoutes, { step: "compare-forms", onContinue() {} }));
+  const { prompt, options } = questions["compare-forms"];
+  const [, card, headingId, heading] = markup.match(/(<section class="content-card"><h2 id="([^"]+)">([^<]+)<\/h2>.*?<\/section>)/);
+  const fieldset = markup.match(/<fieldset[^>]*>.*?<\/fieldset>/)[0];
+
+  assert.match(markup, /data-node-id="2003:348"/);
+  assert.equal(heading, prompt);
+  assert.match(card, /<img[^>]*alt="Dois enantiômeros do ácido lático/);
+  assert.doesNotMatch(card, /<fieldset/);
+  assert.ok(fieldset.includes(`aria-labelledby="${headingId}"`));
+  assert.equal([...fieldset.matchAll(/type="radio"/g)].length, 4);
+  for (const { value } of options) assert.ok(fieldset.includes(value));
+});
+
 test("o feedback apresenta a explicação em uma região de status e a alternativa indica o erro", async () => {
   const { AnswerFeedback } = await server.ssrLoadModule("/src/components/ActivityResponse/AnswerFeedback.tsx");
   const { AnswerOption } = await server.ssrLoadModule("/src/components/ActivityResponse/AnswerOption.tsx");

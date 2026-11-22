@@ -7,7 +7,7 @@ import { EixoRotacao } from "../pages/EixoRotacao/EixoRotacao";
 import { FormaAtiva } from "../pages/FormaAtiva/FormaAtiva";
 import { GirarMudaIdentidade } from "../pages/GirarMudaIdentidade/GirarMudaIdentidade";
 import { IdentifiqueQuiral } from "../pages/IdentifiqueQuiral/IdentifiqueQuiral";
-import { MesmaOuDiferentes } from "../pages/MesmaOuDiferentes/MesmaOuDiferentes";
+import { MesmaOuDiferentes } from "../pages/MesmaouDiferentes/MesmaouDiferentes";
 import { MestreDoQuiral } from "../pages/MestreDoQuiral/MestreDoQuiral";
 import { MonteCHClBrF } from "../pages/MonteCHClBrF/MonteCHClBrF";
 import { SeRepetir } from "../pages/SeRepetir/SeRepetir";

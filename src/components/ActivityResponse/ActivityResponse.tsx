@@ -18,6 +18,7 @@ type ChoiceQuestionProps = {
   requireCorrect?: boolean;
   reviewOnSelect?: boolean;
   illustration?: ReactNode;
+  optionsOutsideCard?: boolean;
   incorrectContinueLabel?: string;
 };
 
@@ -28,6 +29,7 @@ export function ChoiceQuestion({
   requireCorrect = false,
   reviewOnSelect = false,
   illustration,
+  optionsOutsideCard = false,
   incorrectContinueLabel = "Continuar",
 }: ChoiceQuestionProps) {
   const groupName = useId();
@@ -58,21 +60,32 @@ export function ChoiceQuestion({
     }
   }
 
+  const responses = <>
+    <fieldset
+      ref={optionsRef}
+      className="activity-options"
+      disabled={submitted}
+      aria-labelledby={optionsOutsideCard ? groupName : undefined}
+    >
+      {!optionsOutsideCard && <legend>{question.prompt}</legend>}
+      {question.options.map((option, index) => (
+        <AnswerOption key={option.value} name={groupName} label={option.label ?? option.value}
+          selected={selected === index} correct={feedback?.answer.correct} onSelect={() => setSelected(index)} />
+      ))}
+    </fieldset>
+    <AnswerFeedback ref={feedbackRef} correct={feedback?.answer.correct}>
+      {feedback && <p>{feedback.explanation}</p>}
+    </AnswerFeedback>
+  </>;
+
   return (
     <div className="choice-question">
       <ContentCard>
+        {optionsOutsideCard && <h2 id={groupName}>{question.prompt}</h2>}
         {illustration}
-        <fieldset ref={optionsRef} className="activity-options" disabled={submitted}>
-          <legend>{question.prompt}</legend>
-          {question.options.map((option, index) => (
-            <AnswerOption key={option.value} name={groupName} label={option.label ?? option.value}
-              selected={selected === index} correct={feedback?.answer.correct} onSelect={() => setSelected(index)} />
-          ))}
-        </fieldset>
-        <AnswerFeedback ref={feedbackRef} correct={feedback?.answer.correct}>
-          {feedback && <p>{feedback.explanation}</p>}
-        </AnswerFeedback>
+        {!optionsOutsideCard && responses}
       </ContentCard>
+      {optionsOutsideCard && responses}
       <PageFooter>
         <Button disabled={!evaluated} onClick={handleAction}>{actionLabel}</Button>
       </PageFooter>

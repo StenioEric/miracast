@@ -196,20 +196,24 @@ export const questions = {
     ],
   },
   "compare-forms": {
-    prompt: "As duas formas espelhadas do ácido lático têm a mesma conectividade e não se sobrepõem. Qual é a relação entre elas?",
+    prompt: "Os dois enantiômeros do ácido lático são a mesma substância ou diferentes?",
     correct: 1,
     options: [
       {
-        value: "São a mesma forma em ângulos diferentes",
-        explanation: "Vistas diferentes da mesma forma poderiam coincidir por rotação e translação. O enunciado diz que as imagens espelhadas não se sobrepõem, o que caracteriza um par de enantiômeros.",
+        value: "A. A mesma — têm os mesmos átomos, só estão desenhados invertidos",
+        explanation: "As duas formas têm os mesmos átomos e as mesmas ligações. A disposição dos quatro ligantes em torno do carbono quiral forma imagens espelhadas que não se sobrepõem.",
       },
       {
-        value: "São enantiômeros",
-        explanation: "Enantiômeros têm a mesma conectividade e são imagens especulares não sobreponíveis.",
+        value: "B. Diferentes — têm organização espacial oposta e interagem de modo distinto com o organismo",
+        explanation: "Os enantiômeros têm configurações espaciais opostas e não se sobrepõem. Moléculas quirais do organismo, como enzimas, podem interagir de maneira diferente com cada forma.",
       },
       {
-        value: "São isômeros com conectividades diferentes",
-        explanation: "As ligações entre os átomos são as mesmas nas duas formas. A diferença está na configuração tridimensional, como ocorre em um par de enantiômeros.",
+        value: "C. A mesma — qualquer giro transforma uma na outra",
+        explanation: "Uma rotação conserva a configuração do carbono quiral. Nenhum giro faz H, OH, CH₃ e COOH coincidirem simultaneamente com os ligantes correspondentes na imagem espelhada.",
+      },
+      {
+        value: "D. Diferentes — porque têm fórmulas moleculares distintas",
+        explanation: "As duas formas têm a mesma fórmula molecular, C₃H₆O₃, e a mesma conectividade. Elas se distinguem pela disposição espacial dos ligantes em torno do carbono quiral.",
       },
     ],
   },
