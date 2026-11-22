@@ -280,20 +280,24 @@ export const questions = {
     ],
   },
   "qv5": {
-    prompt: "Qual procedimento distingue um modelo quiral de um aquiral?",
+    prompt: "Qual explicação reúne corretamente as três ideias (geometria tetraédrica, não-superponibilidade e organização espacial)?",
     correct: 1,
     options: [
       {
-        value: "Contar todos os átomos da fórmula",
-        explanation: "A contagem de átomos só informa a composição. Para verificar a quiralidade, compare o modelo e sua imagem especular usando rotações e translações e observe se eles se sobrepõem.",
+        value: "A. O cristal tem dois carbonos, e cada um desvia a luz para um lado diferente",
+        explanation: "Cada molécula de CHClBrF tem um único carbono. Seus quatro ligantes diferentes formam duas configurações espelhadas, responsáveis por rotações ópticas em sentidos opostos.",
       },
       {
-        value: "Comparar a imagem no espelho usando apenas rotações e translações",
-        explanation: "Rotações e translações conservam a estrutura. Se a imagem especular puder se sobrepor ao original, o modelo é aquiral. Se não puder, o modelo é quiral.",
+        value: "B. O carbono tetraédrico tem 4 átomos diferentes → gera dois enantiômeros especulares não superponíveis → a organização espacial oposta de cada forma desvia a luz para um lado",
+        explanation: "O carbono tetraédrico está ligado a H, Cl, Br e F. Esses quatro ligantes formam duas configurações espelhadas que não se sobrepõem. Nas mesmas condições, amostras equivalentes de cada enantiômero puro giram o plano da luz polarizada pelo mesmo ângulo, em sentidos opostos.",
       },
       {
-        value: "Alterar uma ligação até os modelos coincidirem",
-        explanation: "Alterar uma ligação muda a estrutura que você está testando. Para avaliar o modelo original, mantenha suas ligações e tente sobrepor a imagem no espelho apenas mudando a posição e a orientação.",
+        value: "C. As duas formas têm fórmulas moleculares diferentes, por isso desviam a luz de modos diferentes",
+        explanation: "Os dois enantiômeros têm a mesma fórmula molecular, CHClBrF, e a mesma conectividade. A disposição espacial dos ligantes distingue as duas formas e explica os sentidos opostos de rotação da luz polarizada.",
+      },
+      {
+        value: "D. A diferença está no tamanho das moléculas, que altera a passagem da luz",
+        explanation: "As duas formas têm as mesmas dimensões moleculares. A diferença está na configuração dos ligantes em torno do carbono quiral, que produz sentidos opostos de rotação da luz polarizada.",
       },
     ],
   },

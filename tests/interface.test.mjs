@@ -41,6 +41,7 @@ for (const [step, frame] of [
   ["compare-forms", "2003:348"],
   ["qv4", "2003:308"],
   ["augmented-reality", "2003:264"],
+  ["qv5", "2003:236"],
 ]) {
   test(`${step} usa o layout compartilhado e exibe Continuar desabilitado antes da seleção`, async () => {
     const { ActivityRoutes } = await server.ssrLoadModule("/src/navigation/ActivityRoutes.tsx");
