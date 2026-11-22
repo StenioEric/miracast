@@ -236,20 +236,24 @@ export const questions = {
     ],
   },
   "qv4": {
-    prompt: "Quais são os quatro ligantes do carbono quiral do ácido lático?",
-    correct: 0,
+    prompt: 'Qual o erro de dizer que os enantiômeros "são iguais, só estão invertidos"?',
+    correct: 2,
     options: [
       {
-        value: "H, OH, CH₃ e COOH",
-        explanation: "A fórmula CH₃–CH(OH)–COOH mostra quatro ligantes diferentes no carbono central: H, OH, CH₃ e COOH.",
+        value: "A. Ele errou ao contar — os enantiômeros têm números diferentes de hidrogênios",
+        explanation: "Cada enantiômero do ácido lático tem seis átomos de hidrogênio e a mesma fórmula molecular, C₃H₆O₃. A diferença está na disposição espacial dos ligantes em torno do carbono quiral.",
       },
       {
-        value: "H, H, OH e COOH",
-        explanation: "O carbono central é CH(OH), com um único H ligado diretamente a ele. A alternativa troca o grupo CH₃ por um segundo H. Os quatro ligantes são H, OH, CH₃ e COOH.",
+        value: "B. Ele acertou — mesmos átomos significa mesma substância",
+        explanation: "Os mesmos átomos indicam a mesma composição. Os enantiômeros também têm as mesmas ligações, mas a disposição espacial dos ligantes dá origem a duas imagens espelhadas que não se sobrepõem.",
       },
       {
-        value: "H, OH, OH e CH₃",
-        explanation: "Há somente um OH ligado diretamente ao carbono central. O OH presente no grupo COOH faz parte desse ligante. Os quatro ligantes são H, OH, CH₃ e COOH.",
+        value: "C. Ele ignorou a organização espacial. Mesmos átomos não garantem disposição 3D idêntica — é ela que os torna diferentes",
+        explanation: "Os ligantes OH, H, CH₃ e COOH são os mesmos nas duas formas. Em torno do carbono quiral, eles estão dispostos de modo que as configurações sejam imagens espelhadas não sobreponíveis.",
+      },
+      {
+        value: "D. Ele deveria ter contado as ligações, não os átomos",
+        explanation: "O número de ligações e a conectividade são iguais nos dois enantiômeros. Para distingui-los, compare a posição dos ligantes no espaço e verifique se as imagens espelhadas se sobrepõem.",
       },
     ],
   },

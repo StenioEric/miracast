@@ -36,7 +36,7 @@ test("a questão com revisão imediata mantém o botão de continuar desabilitad
   assert.doesNotMatch(markup, /Verificar resposta/);
 });
 
-for (const [step, frame] of [["lactic-acid", "2003:410"], ["compare-forms", "2003:348"]]) {
+for (const [step, frame] of [["lactic-acid", "2003:410"], ["compare-forms", "2003:348"], ["qv4", "2003:308"]]) {
   test(`${step} usa o layout compartilhado e exibe Continuar desabilitado antes da seleção`, async () => {
     const { ActivityRoutes } = await server.ssrLoadModule("/src/navigation/ActivityRoutes.tsx");
     const markup = renderToStaticMarkup(createElement(ActivityRoutes, { step, onContinue() {} }));
@@ -45,7 +45,7 @@ for (const [step, frame] of [["lactic-acid", "2003:410"], ["compare-forms", "200
 
     assert.ok(markup.includes(`class="page page--expedition" data-node-id="${frame}"`));
     assert.match(markup, /<progress class="expedition-progress"/);
-    assert.ok(card?.includes(`<legend>${prompt}</legend>`));
+    assert.ok(card?.includes(renderToStaticMarkup(createElement("legend", null, prompt))));
     assert.equal([...card.matchAll(/type="radio"/g)].length, options.length);
     for (const { value } of options) assert.ok(card.includes(value));
     assert.match(markup, /<footer class="page-footer"><button disabled=""[^>]*>Continuar<\/button>/);

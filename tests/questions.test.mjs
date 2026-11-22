@@ -16,7 +16,7 @@ const expectedCorrectOptions = {
   qv3: 3,
   "lactic-acid": 1,
   "compare-forms": 1,
-  qv4: 0,
+  qv4: 2,
   qv5: 1,
 };
 
