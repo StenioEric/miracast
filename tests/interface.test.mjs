@@ -36,20 +36,32 @@ test("a questão com revisão imediata mantém o botão de continuar desabilitad
   assert.doesNotMatch(markup, /Verificar resposta/);
 });
 
-test("a Tela 17 associa as quatro alternativas ao enunciado no cartão da ilustração", async () => {
-  const { ActivityRoutes } = await server.ssrLoadModule("/src/navigation/ActivityRoutes.tsx");
-  const markup = renderToStaticMarkup(createElement(ActivityRoutes, { step: "compare-forms", onContinue() {} }));
-  const { prompt, options } = questions["compare-forms"];
-  const [, card, headingId, heading] = markup.match(/(<section class="content-card"><h2 id="([^"]+)">([^<]+)<\/h2>.*?<\/section>)/);
-  const fieldset = markup.match(/<fieldset[^>]*>.*?<\/fieldset>/)[0];
+for (const [step, frame] of [["lactic-acid", "2003:410"], ["compare-forms", "2003:348"]]) {
+  test(`${step} usa o layout compartilhado e exibe Continuar desabilitado antes da seleção`, async () => {
+    const { ActivityRoutes } = await server.ssrLoadModule("/src/navigation/ActivityRoutes.tsx");
+    const markup = renderToStaticMarkup(createElement(ActivityRoutes, { step, onContinue() {} }));
+    const { prompt, options } = questions[step];
+    const card = markup.match(/<section class="content-card">.*?<\/section>/)?.[0];
 
-  assert.match(markup, /data-node-id="2003:348"/);
-  assert.equal(heading, prompt);
-  assert.match(card, /<img[^>]*alt="Dois enantiômeros do ácido lático/);
-  assert.doesNotMatch(card, /<fieldset/);
-  assert.ok(fieldset.includes(`aria-labelledby="${headingId}"`));
-  assert.equal([...fieldset.matchAll(/type="radio"/g)].length, 4);
-  for (const { value } of options) assert.ok(fieldset.includes(value));
+    assert.ok(markup.includes(`class="page page--expedition" data-node-id="${frame}"`));
+    assert.match(markup, /<progress class="expedition-progress"/);
+    assert.ok(card?.includes(`<legend>${prompt}</legend>`));
+    assert.equal([...card.matchAll(/type="radio"/g)].length, options.length);
+    for (const { value } of options) assert.ok(card.includes(value));
+    assert.match(markup, /<footer class="page-footer"><button disabled=""[^>]*>Continuar<\/button>/);
+  });
+}
+
+test("o diagrama do ácido lático oferece um botão para cada carbono", async () => {
+  const { AcidoLatico } = await server.ssrLoadModule("/src/pages/AcidoLatico/AcidoLatico.tsx");
+  const markup = renderToStaticMarkup(createElement(AcidoLatico, { onContinue() {} }));
+  const diagram = markup.match(/<div class="lactic-acid__diagram"[^>]*>.*?<\/div>/)?.[0];
+
+  assert.ok(diagram);
+  assert.deepEqual(
+    [...diagram.matchAll(/<button aria-label="([^"]+)" aria-pressed="false"/g)].map(([, label]) => label),
+    ["Carbono do CH₃", "Carbono central", "Carbono do COOH"],
+  );
 });
 
 test("o feedback apresenta a explicação em uma região de status e a alternativa indica o erro", async () => {

@@ -195,6 +195,24 @@ export const questions = {
       },
     ],
   },
+  "lactic-acid": {
+    prompt: "Qual carbono do ácido lático é o quiral?",
+    correct: 1,
+    options: [
+      {
+        value: "A. Carbono do CH₃",
+        explanation: "O carbono do CH₃ está ligado a três hidrogênios iguais. O carbono central é o quiral porque está ligado a quatro grupos diferentes: OH, H, CH₃ e COOH.",
+      },
+      {
+        value: "B. O carbono central - ligado a OH, H, CH₃ e COOH",
+        explanation: "O carbono central é tetraédrico e está ligado a quatro grupos diferentes: OH, H, CH₃ e COOH. Isso faz dele um centro quiral.",
+      },
+      {
+        value: "C. O carbono do COOH",
+        explanation: "O carbono do COOH faz uma ligação dupla com um oxigênio e tem geometria trigonal plana. O centro quiral é o carbono vizinho, que é tetraédrico e tem quatro ligantes diferentes.",
+      },
+    ],
+  },
   "compare-forms": {
     prompt: "Os dois enantiômeros do ácido lático são a mesma substância ou diferentes?",
     correct: 1,

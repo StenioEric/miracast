@@ -1,1 +1,61 @@
-/* A aparência desta página usa os estilos compartilhados dos componentes. */
+.lactic-acid {
+  display: grid;
+  gap: var(--space-4);
+  margin: 0;
+}
+
+.lactic-acid figcaption {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.lactic-acid figcaption p {
+  color: var(--muted);
+  font-family: var(--mono-font);
+  font-size: var(--font-small);
+}
+
+.lactic-acid__formula {
+  display: inline-block;
+  max-inline-size: 100%;
+}
+
+.lactic-acid__diagram {
+  display: grid;
+  grid-template-columns: 3ch minmax(var(--space-2), 1fr) auto minmax(var(--space-2), 1fr) 3ch;
+  grid-template-rows: auto var(--space-6) auto var(--space-6) auto;
+  place-items: center;
+  width: min(100%, 21rem);
+  margin-inline: auto;
+  font-family: var(--mono-font);
+  font-weight: 700;
+}
+
+.lactic-acid__diagram::before {
+  grid-area: 3 / 2 / 4 / 5;
+  justify-self: stretch;
+  border-block-start: var(--border-size) solid var(--border-muted);
+  content: "";
+}
+
+.lactic-acid__diagram::after,
+.lactic-acid__dashed-bond {
+  align-self: stretch;
+  border-inline-start: var(--border-size) solid var(--border-muted);
+}
+
+.lactic-acid__diagram::after {
+  grid-area: 2 / 3;
+  content: "";
+}
+
+.lactic-acid__dashed-bond {
+  grid-area: 4 / 3;
+  border-inline-start-style: dashed;
+}
+
+.lactic-acid__carbon--methyl { grid-area: 1 / 3; }
+.lactic-acid__carbon--central { grid-area: 3 / 3; }
+.lactic-acid__carbon--carboxyl { grid-area: 5 / 3; }
+.lactic-acid__hydroxyl { grid-area: 3 / 1; }
+.lactic-acid__hydrogen { grid-area: 3 / 5; }

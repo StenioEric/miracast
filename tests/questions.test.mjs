@@ -14,6 +14,7 @@ const expectedCorrectOptions = {
   superposition: 1,
   "active-form": 1,
   qv3: 3,
+  "lactic-acid": 1,
   "compare-forms": 1,
   qv4: 0,
   qv5: 1,
