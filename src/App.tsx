@@ -249,7 +249,7 @@ function App() {
       if (screen.id === "local-student") {
         browserRoomStore().advance(student.participant.id, step, answer);
       } else {
-        await advanceExpedition(step, answer);
+        await advanceExpedition(step, answer, student.legacy);
         setRevision((value) => value + 1);
       }
     });

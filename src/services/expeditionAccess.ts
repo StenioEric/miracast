@@ -41,10 +41,16 @@ export async function logoutExpedition() {
   if (error) throw new Error("Não foi possível encerrar a sessão. Tente novamente.");
 }
 
-export type StudentState = { room: Room; participant: Participant; participantCount: number };
+export type StudentState = {
+  room: Room;
+  participant: Participant;
+  participantCount: number;
+  legacy?: boolean;
+};
 
 export async function joinExpedition(code: string, name: string) {
   const api = client();
+  const roomCode = normalizeRoomCode(code);
   const { data, error } = await api.auth.getSession();
   if (error) throw new Error("Não foi possível iniciar a sessão do aluno.");
   if (data.session && !data.session.user.is_anonymous) {
@@ -57,23 +63,36 @@ export async function joinExpedition(code: string, name: string) {
     }
     if (error) throw new Error("Não foi possível iniciar a sessão do aluno.");
   }
-  const result = await api.rpc("miracast_join_room", {
-    room_code: normalizeRoomCode(code),
+  const legacy = roomCode.length === 6;
+  const result = await api.rpc(legacy ? "miracast_join_room" : "miracast_join_class", {
+    room_code: roomCode,
     student_name: name.trim(),
   });
   if (result.error) {
-    if (result.error.code === "PGRST202") throw new Error("O ingresso por código ainda não está disponível neste projeto.");
+    if (result.error.code === "PGRST202") {
+      throw new Error(legacy
+        ? "Turma não encontrada. Confira o código com o professor."
+        : "O ingresso por código ainda não está disponível neste projeto.");
+    }
     throw new Error(result.error.code === "P0001" ? result.error.message : "Não foi possível entrar na sala.");
   }
 }
 
 export async function getStudentState(): Promise<StudentState | null> {
+  const current = await client().rpc("miracast_class_student_state");
+  if (current.error && current.error.code !== "PGRST202") {
+    throw new Error("Não foi possível carregar sua participação.");
+  }
+  if (current.data) return current.data;
+
   const { data, error } = await client().rpc("miracast_student_state");
-  if (error) throw new Error("Não foi possível carregar sua participação.");
-  return data;
+  if (error && error.code !== "PGRST202") throw new Error("Não foi possível carregar sua participação.");
+  return data ? { ...data, legacy: true } : null;
 }
 
-export async function advanceExpedition(step: ExpeditionStep, answer?: Answer) {
-  const { error } = await client().rpc("miracast_advance", { expected_step: step, answer: answer ?? null });
+export async function advanceExpedition(step: ExpeditionStep, answer?: Answer, legacy = false) {
+  const { error } = await client().rpc(legacy ? "miracast_advance" : "miracast_advance_class", {
+    expected_step: step, answer: answer ?? null,
+  });
   if (error) throw new Error(error.code === "P0001" ? error.message : "Não foi possível registrar a resposta.");
 }
