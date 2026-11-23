@@ -32,11 +32,16 @@ A [migração de demonstração](supabase/migrations/20261122000000_professor_ac
 3. Saia e entre com outra conta de professor. Confira que o painel contém apenas as turmas dessa conta.
 4. Em **Esqueci minha senha**, solicite o link e abra-o no mesmo navegador. Salve a nova senha e entre novamente.
 
-## Proposta para vincular alunos a turmas
+## Entrada dos alunos por código
 
-O formulário do aluno aceita nome e código. As sessões existentes usam o serviço anterior quando ele está disponível. O projeto com `turmas` ainda precisa de uma API de ingresso por código para as novas turmas e de um vínculo para exibir seus alunos e resultados.
+A [migração de expedições por turma](supabase/migrations/20261123025101_vincula_alunos_as_turmas.sql) acrescenta o estado de início e o registro de participações e respostas vinculados a `turmas.id`. O projeto deve permitir **Anonymous Users** em **Authentication → Sign In / Providers**. Assim o Supabase cria uma sessão para o aluno, que informa apenas nome e código. [Sessões anônimas do Supabase](https://supabase.com/docs/guides/auth/auth-anonymous)
 
-A proposta é reutilizar o ingresso anônimo do Supabase e acrescentar um registro de expedição por turma, referenciado por `turmas.id`, com estado de início. As participações fariam referência à turma e ao ID autenticado do aluno. O servidor validaria o código e retornaria apenas a participação do próprio aluno. O professor consultaria e iniciaria expedições apenas para suas turmas, com acesso aos resultados limitado pelo mesmo vínculo de propriedade. Isso exige habilitar sessões anônimas, criar as tabelas auxiliares e validar políticas para professor e aluno. Os registros anteriores precisariam de uma correspondência confirmada entre a sala e a turma antes de uma migração de dados.
+1. O professor abre uma turma e compartilha o código de dez caracteres.
+2. Cada aluno informa o nome e o código e aguarda na sala de espera.
+3. O professor seleciona **Iniciar expedição**. A sala de espera e a lista de alunos são atualizadas automaticamente.
+4. À medida que o aluno avança, o professor vê as etapas concluídas e as respostas em **Alunos e progresso**.
+
+O código permite entrar na expedição. O aluno recebe só sua participação, o estado da turma e a contagem de inscritos. A sessão é retomada ao recarregar a mesma aba. O acesso do professor aos resultados segue a propriedade da turma no banco. Os códigos de seis caracteres e as participações do esquema anterior continuam funcionando onde o serviço antigo está instalado. A associação de dados históricos a turmas exige uma correspondência confirmada entre os registros.
 
 ## Organização
 
@@ -44,7 +49,7 @@ A proposta é reutilizar o ingresso anônimo do Supabase e acrescentar um regist
 - `src/navigation/ActivityRoutes.tsx` associa os IDs das 18 atividades às páginas. `src/domain/expedition.ts` define a ordem de avanço e o cálculo da pontuação.
 - `src/components/` contém os layouts compartilhados, campos de resposta e modelos moleculares. As respostas abertas podem ser lidas pelo professor e ficam fora da pontuação automática.
 - `src/services/teacherAuth.ts` integra o cadastro, a sessão e a recuperação de senha. `src/services/teacherClasses.ts` consulta e atualiza `turmas`.
-- `src/services/expeditionAccess.ts` é o cliente compartilhado e mantém as chamadas do fluxo de ingresso anterior. `src/services/rooms.ts` preserva as sessões locais existentes.
+- `src/services/expeditionAccess.ts` integra o ingresso e o avanço dos alunos ao Supabase. `src/services/rooms.ts` preserva as sessões locais existentes.
 
 ## Verificar
 
@@ -56,7 +61,7 @@ node --test --test-isolation=none tests/*.test.mjs
 
 O build inclui a checagem de tipos. Os testes cobrem a sequência de frames, validação de sala, participantes homônimos, bloqueio antes do início, retomada dos registros, rejeição de avanços fora de ordem e cálculo da pontuação. Eles também verificam o feedback de cada alternativa, os estados iniciais dos botões e a estrutura dos componentes compartilhados.
 
-Para o esquema anterior, o [teste de isolamento](supabase/tests/professor_access.sql) executa as políticas para duas contas de professor, dois alunos e uma conta sem autorização. Execute o SQL em uma base de teste com a migração aplicada. Os registros criados pelo teste são revertidos ao final.
+O [teste da expedição por turma](supabase/tests/class_expeditions.sql) verifica a entrada por código, o bloqueio antes do início, o avanço e o isolamento entre turmas em uma base de teste. Para o esquema anterior, o [teste de isolamento](supabase/tests/professor_access.sql) executa as políticas para duas contas de professor, dois alunos e uma conta sem autorização. Execute o SQL em uma base de teste com a migração aplicada. Os registros criados pelo teste são revertidos ao final.
 
 ## Pendências
 
