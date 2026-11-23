@@ -12,8 +12,8 @@ import {
   resetTeacherPassword, verifyTeacherSession,
 } from "./services/teacherAuth";
 import type { AuthPurpose } from "./services/teacherAuth";
-import { createTeacherClass, getTeacherClass, listTeacherClasses, renameTeacherClass } from "./services/teacherClasses";
-import type { TeacherClass } from "./services/teacherClasses";
+import { createTeacherClass, getTeacherClass, listTeacherClasses, renameTeacherClass, startTeacherExpedition } from "./services/teacherClasses";
+import type { TeacherClass, TeacherClassState } from "./services/teacherClasses";
 import { browserRoomStore, subscribeToRooms } from "./services/rooms";
 import { ExpeditionEntry } from "./pages/ExpeditionEntry/ExpeditionEntry";
 import { Motivation } from "./pages/Motivation/Motivation";
@@ -38,7 +38,7 @@ type Screen =
 
 type RemoteData =
   | { kind: "dashboard"; rooms: TeacherClass[] }
-  | { kind: "room"; details: TeacherClass | null }
+  | { kind: "room"; details: TeacherClassState | null }
   | { kind: "student"; details: StudentState | null };
 
 type Snapshot = { screen: Screen; userId: string } & (
@@ -131,7 +131,9 @@ function useRemoteData(screen: Screen, user: User | null | undefined, teacherAut
       } catch (problem) {
         if (!cancelled) setSnapshot({ ...scope, error: message(problem) });
       }
-      if (!cancelled && screen.id === "student") timer = window.setTimeout(refresh, 3000);
+      if (!cancelled && (screen.id === "student" || screen.id === "room")) {
+        timer = window.setTimeout(refresh, 3000);
+      }
     }
 
     void refresh();
@@ -249,7 +251,7 @@ function App() {
       if (screen.id === "local-student") {
         browserRoomStore().advance(student.participant.id, step, answer);
       } else {
-        await advanceExpedition(step, answer);
+        await advanceExpedition(step, answer, student.legacy);
         setRevision((value) => value + 1);
       }
     });
@@ -362,12 +364,16 @@ function App() {
         if (!remote) return <LoadingScreen />;
         const details = data?.kind === "room" ? data.details : null;
         return details ? <ProfessorRoom
-          room={details}
+          {...details}
           created={screen.created}
           pending={pending}
           onViewRoom={() => goTo({ id: "room", roomCode: screen.roomCode })}
           onRename={(name) => void run(async () => {
             await renameTeacherClass(screen.roomCode, name);
+            setRevision((value) => value + 1);
+          })}
+          onStart={() => void run(async () => {
+            await startTeacherExpedition(screen.roomCode);
             setRevision((value) => value + 1);
           })}
           onBackToDashboard={() => goTo({ id: "dashboard" })}
