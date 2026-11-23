@@ -29,12 +29,12 @@ export function ExpeditionEntry({ onJoin, onBack, pending }: ExpeditionEntryProp
       </PageFooter>}
     >
       <ContentCard as="form" onSubmit={submit}>
-        <p>Use o código de seis caracteres fornecido pelo professor.</p>
+        <p>Use o código da turma fornecido pelo professor.</p>
         <label className="form-field">
           Código da sala
           <input className="form-control expedicao__codigo" name="code"
-            pattern="[A-Za-z0-9]{6}" minLength={6} maxLength={6} autoCapitalize="characters"
-            autoComplete="off" spellCheck={false} placeholder="Ex.: ABC123" required />
+            pattern="[A-Za-z0-9]{6}|[A-Fa-f0-9]{10}" minLength={6} maxLength={10} autoCapitalize="characters"
+            autoComplete="off" spellCheck={false} placeholder="Ex.: A1B2C3D4E5" required />
         </label>
         <label className="form-field">
           Seu nome

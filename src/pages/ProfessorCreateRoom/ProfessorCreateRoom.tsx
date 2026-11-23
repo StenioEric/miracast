@@ -19,16 +19,16 @@ export function ProfessorCreateRoom({ onBackToDashboard, onRoomCreated, pending 
 
   return (
     <ProfessorLayout frame="2020:30"
-      title="Criar nova sala"
+      title="Criar nova turma"
       navigation={<Button variant="link" disabled={pending} onClick={onBackToDashboard}>Voltar ao painel</Button>}
     >
       <ContentCard as="form" onSubmit={submit}>
         <p>Defina um nome para identificar sua turma.</p>
         <label className="form-field">
-          Nome da sala
-          <input className="form-control" name="roomName" placeholder="Ex.: Estereoquímica – Turma A" maxLength={100} required />
+          Nome da turma
+          <input className="form-control" name="roomName" placeholder="Ex.: Estereoquímica – Turma A" maxLength={120} required />
         </label>
-        <Button type="submit" disabled={pending}>{pending ? "Aguarde…" : "Criar sala"}</Button>
+        <Button type="submit" disabled={pending}>{pending ? "Aguarde…" : "Criar turma"}</Button>
       </ContentCard>
     </ProfessorLayout>
   );

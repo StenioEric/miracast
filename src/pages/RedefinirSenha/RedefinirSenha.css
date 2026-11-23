@@ -1,0 +1,4 @@
+.redefinir-senha .form-control {
+  border-color: var(--ink);
+  border-radius: var(--radius-pill);
+}

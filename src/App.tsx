@@ -1,13 +1,19 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 
 import type { Answer, ExpeditionStep } from "./domain/expedition";
 import { ActivityRoutes } from "./navigation/ActivityRoutes";
 import {
-  advanceExpedition, createTeacherRoom, getStudentState, getTeacherRoom, joinExpedition,
-  listTeacherRooms, loginTeacher, logoutExpedition, startTeacherRoom, supabase,
+  advanceExpedition, getStudentState, joinExpedition, logoutExpedition, supabase,
 } from "./services/expeditionAccess";
-import type { RoomSummary, StudentState, TeacherRoomState } from "./services/expeditionAccess";
+import type { StudentState } from "./services/expeditionAccess";
+import {
+  completeAuthLink, loginTeacher, registerTeacher, requestPasswordReset,
+  resetTeacherPassword, verifyTeacherSession,
+} from "./services/teacherAuth";
+import type { AuthPurpose } from "./services/teacherAuth";
+import { createTeacherClass, getTeacherClass, listTeacherClasses, renameTeacherClass } from "./services/teacherClasses";
+import type { TeacherClass } from "./services/teacherClasses";
 import { browserRoomStore, subscribeToRooms } from "./services/rooms";
 import { ExpeditionEntry } from "./pages/ExpeditionEntry/ExpeditionEntry";
 import { Motivation } from "./pages/Motivation/Motivation";
@@ -20,16 +26,19 @@ import { ProfessorLogin } from "./pages/ProfessorLogin/ProfessorLogin";
 import { ProfessorDashboard } from "./pages/ProfessorDashboard/ProfessorDashboard";
 import { ProfessorCreateRoom } from "./pages/ProfessorCreateRoom/ProfessorCreateRoom";
 import { ProfessorRoom } from "./pages/ProfessorRoom/ProfessorRoom";
+import { RedefinirSenha } from "./pages/RedefinirSenha/RedefinirSenha";
 import { PageHeader, PageLayout } from "./components/PageLayout/PageLayout";
 
 type Screen =
   | { id: "start" | "entry" | "professor-login" | "dashboard" | "create-room" | "student" }
   | { id: "room"; roomCode: string; created?: boolean }
+  | { id: "auth-callback"; purpose: AuthPurpose }
+  | { id: "reset-password"; userId: string }
   | { id: "local-student"; participantId: string };
 
 type RemoteData =
-  | { kind: "dashboard"; rooms: RoomSummary[] }
-  | { kind: "room"; details: TeacherRoomState | null }
+  | { kind: "dashboard"; rooms: TeacherClass[] }
+  | { kind: "room"; details: TeacherClass | null }
   | { kind: "student"; details: StudentState | null };
 
 type Snapshot = { screen: Screen; userId: string } & (
@@ -41,7 +50,7 @@ const legacyParticipantKey = "miracast:active-participant";
 const screenKey = "miracast:screen";
 const legacyProfessorScreenKey = "miracast:professor-screen";
 
-function isSavedScreen(value: unknown): value is Exclude<Screen, { id: "local-student" }> {
+function isSavedScreen(value: unknown): value is Exclude<Screen, { id: "local-student" | "auth-callback" }> {
   if (!value || typeof value !== "object" || !("id" in value)) return false;
   switch (value.id) {
     case "professor-login":
@@ -49,6 +58,8 @@ function isSavedScreen(value: unknown): value is Exclude<Screen, { id: "local-st
     case "create-room":
     case "student":
       return true;
+    case "reset-password":
+      return "userId" in value && typeof value.userId === "string";
     case "room":
       return "roomCode" in value && typeof value.roomCode === "string"
         && (!("created" in value) || typeof value.created === "boolean");
@@ -58,6 +69,8 @@ function isSavedScreen(value: unknown): value is Exclude<Screen, { id: "local-st
 }
 
 function initialScreen(): Screen {
+  const purpose = new URLSearchParams(window.location.search).get("auth");
+  if (purpose === "confirmacao" || purpose === "recuperacao") return { id: "auth-callback", purpose };
   try {
     const saved: unknown = JSON.parse(sessionStorage.getItem(screenKey) ?? "null");
     if (isSavedScreen(saved)) return saved;
@@ -75,11 +88,28 @@ function message(problem: unknown) {
   return problem instanceof Error ? problem.message : "Não foi possível concluir a operação. Tente novamente.";
 }
 
-function useRemoteData(screen: Screen, user: User | null | undefined, revision: number) {
+function useTeacherAccess(user: User | null | undefined) {
+  const [access, setAccess] = useState<{ userId: string; allowed: boolean; error?: string } | null>(null);
+  const userId = user?.is_anonymous ? undefined : user?.id;
+
+  useEffect(() => {
+    if (!userId) return;
+    let active = true;
+    void verifyTeacherSession().then(
+      (teacher) => { if (active) setAccess({ userId, allowed: teacher?.id === userId }); },
+      (problem: unknown) => { if (active) setAccess({ userId, allowed: false, error: message(problem) }); },
+    );
+    return () => { active = false; };
+  }, [userId]);
+
+  return userId && access?.userId === userId ? access : null;
+}
+
+function useRemoteData(screen: Screen, user: User | null | undefined, teacherAuthorized: boolean, revision: number) {
   const [snapshot, setSnapshot] = useState<Snapshot | null>(null);
   const userId = user?.id;
   const anonymous = user?.is_anonymous;
-  const enabled = anonymous ? screen.id === "student" : screen.id === "dashboard" || screen.id === "room";
+  const enabled = anonymous ? screen.id === "student" : teacherAuthorized && (screen.id === "dashboard" || screen.id === "room");
 
   useEffect(() => {
     if (!enabled || !userId) return;
@@ -91,9 +121,9 @@ function useRemoteData(screen: Screen, user: User | null | undefined, revision: 
       try {
         let data: RemoteData;
         if (screen.id === "dashboard") {
-          data = { kind: "dashboard", rooms: await listTeacherRooms() };
+          data = { kind: "dashboard", rooms: await listTeacherClasses() };
         } else if (screen.id === "room") {
-          data = { kind: "room", details: await getTeacherRoom(screen.roomCode) };
+          data = { kind: "room", details: await getTeacherClass(screen.roomCode) };
         } else {
           data = { kind: "student", details: await getStudentState() };
         }
@@ -101,7 +131,7 @@ function useRemoteData(screen: Screen, user: User | null | undefined, revision: 
       } catch (problem) {
         if (!cancelled) setSnapshot({ ...scope, error: message(problem) });
       }
-      if (!cancelled) timer = window.setTimeout(refresh, 3000);
+      if (!cancelled && screen.id === "student") timer = window.setTimeout(refresh, 3000);
     }
 
     void refresh();
@@ -129,10 +159,13 @@ function App() {
   const [screen, setScreen] = useState<Screen>(initialScreen);
   const [user, setUser] = useState<User | null | undefined>(supabase ? undefined : null);
   const [error, setError] = useState("");
+  const [status, setStatus] = useState("");
   const [pending, setPending] = useState(false);
   const working = useRef(false);
   const [revision, setRevision] = useState(0);
-  const remote = useRemoteData(screen, user, revision);
+  const access = useTeacherAccess(user);
+  const remote = useRemoteData(screen, user, access?.allowed === true, revision);
+  const authCallback = useRef<Promise<string> | null>(null);
 
   useEffect(() => {
     const subscription = supabase?.auth.onAuthStateChange((_event, session) => setUser(session?.user ?? null));
@@ -153,8 +186,9 @@ function App() {
     window.scrollTo(0, 0);
   }, [screen, visibleStep]);
 
-  function goTo(target: Screen) {
+  const goTo = useCallback((target: Screen) => {
     setError("");
+    setStatus("");
     setScreen(target);
     try {
       if (isSavedScreen(target)) {
@@ -167,13 +201,31 @@ function App() {
     } catch {
       // A navegação atual também funciona sem retomar a tela ao recarregar.
     }
-  }
+  }, []);
+
+  useEffect(() => {
+    if (screen.id !== "auth-callback") return;
+    authCallback.current ??= completeAuthLink(screen.purpose);
+    let active = true;
+    void authCallback.current.then(
+      (userId) => {
+        if (active) goTo(screen.purpose === "recuperacao" ? { id: "reset-password", userId } : { id: "dashboard" });
+      },
+      (problem: unknown) => {
+        if (!active) return;
+        goTo({ id: "professor-login" });
+        setError(message(problem));
+      },
+    );
+    return () => { active = false; };
+  }, [screen, goTo]);
 
   async function run(action: () => Promise<void>) {
     if (working.current) return;
     working.current = true;
     setPending(true);
     setError("");
+    setStatus("");
     try {
       await action();
     } catch (problem) {
@@ -207,12 +259,19 @@ function App() {
     return <ProfessorLogin
       configured={Boolean(supabase)}
       pending={pending}
-      error={error}
+      error={error || (access?.allowed === false ? access.error || "Esta conta não tem acesso à área do professor." : "")}
+      status={status}
       onBackToStudent={() => leave({ id: "entry" })}
       onLogin={(email, password) => void run(async () => {
         await loginTeacher(email, password);
         goTo({ id: "dashboard" });
       })}
+      onRegister={(email, password) => void run(async () => {
+        const confirmation = await registerTeacher(email, password);
+        if (confirmation) setStatus(confirmation);
+        else goTo({ id: "dashboard" });
+      })}
+      onRecover={(email) => void run(async () => { setStatus(await requestPasswordReset(email)); })}
     />;
   }
 
@@ -249,6 +308,22 @@ function App() {
         })} />;
       case "professor-login":
         return renderLogin();
+      case "auth-callback":
+        return <LoadingScreen />;
+      case "reset-password":
+        if (user === undefined || (user?.id === screen.userId && !access)) return <LoadingScreen />;
+        return <RedefinirSenha
+          available={user?.id === screen.userId && access?.allowed === true}
+          pending={pending}
+          error={error}
+          onBack={() => leave({ id: "professor-login" })}
+          onReset={(password) => void run(async () => {
+            await resetTeacherPassword(password);
+            await logoutExpedition();
+            goTo({ id: "professor-login" });
+            setStatus("Senha atualizada. Entre com a nova senha.");
+          })}
+        />;
       case "local-student":
         return renderStudent();
     }
@@ -262,6 +337,8 @@ function App() {
     }
 
     if (!user || user.is_anonymous) return renderLogin();
+    if (!access) return <LoadingScreen />;
+    if (!access.allowed) return renderLogin();
     switch (screen.id) {
       case "dashboard":
         if (!remote) return <LoadingScreen />;
@@ -277,7 +354,7 @@ function App() {
           pending={pending}
           onBackToDashboard={() => goTo({ id: "dashboard" })}
           onRoomCreated={(name) => void run(async () => {
-            const room = await createTeacherRoom(name);
+            const room = await createTeacherClass(name);
             goTo({ id: "room", roomCode: room.code, created: true });
           })}
         />;
@@ -285,12 +362,12 @@ function App() {
         if (!remote) return <LoadingScreen />;
         const details = data?.kind === "room" ? data.details : null;
         return details ? <ProfessorRoom
-          room={details.room}
-          participants={details.participants}
+          room={details}
           created={screen.created}
+          pending={pending}
           onViewRoom={() => goTo({ id: "room", roomCode: screen.roomCode })}
-          onStart={() => void run(async () => {
-            await startTeacherRoom(screen.roomCode);
+          onRename={(name) => void run(async () => {
+            await renameTeacherClass(screen.roomCode, name);
             setRevision((value) => value + 1);
           })}
           onBackToDashboard={() => goTo({ id: "dashboard" })}
@@ -300,9 +377,9 @@ function App() {
   }
 
   const loginVisible = screen.id === "professor-login"
-    || (user !== undefined && (!user || user.is_anonymous)
+    || (user !== undefined && (!user || user.is_anonymous || access?.allowed === false)
       && (screen.id === "dashboard" || screen.id === "create-room" || screen.id === "room"));
-  const problem = !loginVisible && (error || (remote && "error" in remote ? remote.error : ""));
+  const problem = !loginVisible && screen.id !== "reset-password" && (error || (remote && "error" in remote ? remote.error : ""));
   return <>
     {problem && <p className="app-error" role="alert">{problem}</p>}
     {renderScreen()}

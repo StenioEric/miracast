@@ -141,6 +141,8 @@ test("o login do professor pede e-mail e senha e exige configuração do serviç
     error: "",
     onBackToStudent() {},
     onLogin() {},
+    onRegister() {},
+    onRecover() {},
   }));
 
   assert.match(markup, /data-node-id="2020:2"/);
@@ -149,4 +151,18 @@ test("o login do professor pede e-mail e senha e exige configuração do serviç
   assert.match(markup, /<input [^>]*type="password"[^>]*autoComplete="current-password"/i);
   assert.match(markup, /<button disabled="" type="submit"[^>]*>Entrar<\/button>/);
   assert.match(markup, /Voltar à entrada do aluno/);
+  assert.match(markup, /value="register"[^>]*>Criar conta<\/button>/);
+  assert.match(markup, /value="recover"[^>]*formNoValidate=""[^>]*>Esqueci minha senha<\/button>/i);
+});
+
+test("a tela de redefinição só oferece uma nova senha com link validado", async () => {
+  const { RedefinirSenha } = await server.ssrLoadModule("/src/pages/RedefinirSenha/RedefinirSenha.tsx");
+  const props = { pending: false, error: "", onBack() {}, onReset() {} };
+  const unavailable = renderToStaticMarkup(createElement(RedefinirSenha, { ...props, available: false }));
+  const available = renderToStaticMarkup(createElement(RedefinirSenha, { ...props, available: true }));
+
+  assert.doesNotMatch(unavailable, /<form/);
+  assert.match(unavailable, /link de recuperação/);
+  assert.match(available, /autoComplete="new-password"/i);
+  assert.match(available, /Salvar nova senha/);
 });

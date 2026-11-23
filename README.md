@@ -11,38 +11,40 @@ npm ci
 npm run dev
 ```
 
-Abra a URL exibida pelo Vite. Configure o Supabase para criar salas e participar de novas expedições.
+Abra a URL exibida pelo Vite. O fluxo do professor usa o projeto Supabase que possui as tabelas `profiles` e `turmas`.
 
 ## Configurar o acesso
 
-1. Copie `.env.example` para `.env.local` e preencha a URL e a chave publicável do projeto Supabase. Reinicie o Vite após alterar essas variáveis.
-2. Aplique [a migração de acesso](supabase/migrations/20261122000000_professor_access.sql) pelo SQL Editor ou pelo fluxo de migrações do Supabase.
-3. Em Authentication, habilite os provedores de e-mail e de [sessão anônima](https://supabase.com/docs/guides/auth/auth-anonymous). A sessão anônima permite aos alunos entrar com código e nome.
-4. Crie a conta do professor em Authentication e libere seu acesso no SQL Editor usando o e-mail cadastrado:
+1. Copie `.env.example` para `.env.local` e preencha a URL do projeto e a chave `sb_publishable_...`. Reinicie o Vite após alterar essas variáveis.
+2. No Supabase, verifique se o cadastro com e-mail e senha está habilitado. Mantenha configurado o envio de e-mails de confirmação e recuperação.
+3. Em **Authentication → URL Configuration**, configure a **Site URL** do MiraCast e permita duas URLs de redirecionamento para cada ambiente. Para o Vite em `http://localhost:5173`, use:
+   - `http://localhost:5173/?auth=confirmacao`
+   - `http://localhost:5173/?auth=recuperacao`
 
-   ```sql
-   insert into public.miracast_teachers (id)
-   select id from auth.users where email = 'professor@escola.edu.br'
-   on conflict do nothing;
-   ```
+O projeto fornecido já cria o perfil de professor no cadastro por e-mail. As políticas da tabela `turmas` limitam a leitura, a criação e a edição ao professor proprietário. A aplicação envia apenas o nome ao criar ou renomear uma turma. O banco atribui o proprietário e gera o código.
 
-Cada sala gerada recebe a conta do professor como proprietária. As permissões do banco restringem consultas e atualizações às salas dessa conta e aos alunos vinculados a elas. Os alunos recebem apenas sua própria participação, os dados da sala e a contagem de inscritos.
+A [migração de demonstração](supabase/migrations/20261122000000_professor_access.sql) atende ao esquema anterior `miracast_rooms`. Ela serve às bases de teste e de demonstração que usam esse esquema. Para o projeto com `profiles` e `turmas`, use as políticas já aplicadas.
 
-## Demonstrar os fluxos
+## Testar o fluxo do professor
 
-1. Na primeira aba, entre como professor, crie uma sala e anote o código. Abra o detalhe da sala.
-2. Em outra aba ou dispositivo, entre como aluno, informe o código e use um nome de teste. O nome deve aparecer no detalhe da sala.
-3. Na aba do professor, inicie a expedição. Na aba do aluno, a sala de espera dá lugar à motivação.
-4. Siga pelo protocolo, classificação e pelas atividades até **Mestre do Quiral**. Recarregue a aba após avançar uma etapa para conferir a retomada. No painel, abra **Respostas registradas** para acompanhar o progresso.
+1. Escolha **Entrar como Professor**, informe e-mail e senha e selecione **Criar conta**. Se a confirmação estiver ativa, abra o link no mesmo navegador em que solicitou o cadastro. O link pode abrir em outra aba.
+2. Entre, crie uma turma, renomeie-a e recarregue a página. A sessão e a turma devem aparecer novamente.
+3. Saia e entre com outra conta de professor. Confira que o painel contém apenas as turmas dessa conta.
+4. Em **Esqueci minha senha**, solicite o link e abra-o no mesmo navegador. Salve a nova senha e entre novamente.
 
-Salas, participantes e respostas de novas expedições ficam no Supabase. A sessão fica na aba e é retomada ao recarregar. As salas da demonstração antiga permanecem no navegador, onde sessões de alunos já abertas ainda podem ser retomadas. Como essas salas foram criadas sem proprietário, a criação de turmas no Supabase começa com as novas contas.
+## Proposta para vincular alunos a turmas
+
+O formulário do aluno aceita nome e código. As sessões existentes usam o serviço anterior quando ele está disponível. O projeto com `turmas` ainda precisa de uma API de ingresso por código para as novas turmas e de um vínculo para exibir seus alunos e resultados.
+
+A proposta é reutilizar o ingresso anônimo do Supabase e acrescentar um registro de expedição por turma, referenciado por `turmas.id`, com estado de início. As participações fariam referência à turma e ao ID autenticado do aluno. O servidor validaria o código e retornaria apenas a participação do próprio aluno. O professor consultaria e iniciaria expedições apenas para suas turmas, com acesso aos resultados limitado pelo mesmo vínculo de propriedade. Isso exige habilitar sessões anônimas, criar as tabelas auxiliares e validar políticas para professor e aluno. Os registros anteriores precisariam de uma correspondência confirmada entre a sala e a turma antes de uma migração de dados.
 
 ## Organização
 
 - `src/pages/` contém as telas. Cada página tem uma pasta com os arquivos TSX e CSS de mesmo nome. Os frames `2003:865` e `2003:1089` aparecem como estados internos da montagem e da sobreposição.
 - `src/navigation/ActivityRoutes.tsx` associa os IDs das 18 atividades às páginas. `src/domain/expedition.ts` define a ordem de avanço e o cálculo da pontuação.
 - `src/components/` contém os layouts compartilhados, campos de resposta e modelos moleculares. As respostas abertas podem ser lidas pelo professor e ficam fora da pontuação automática.
-- `src/services/expeditionAccess.ts` integra o login e as novas expedições ao Supabase. `src/services/rooms.ts` preserva a leitura e o avanço das sessões locais existentes.
+- `src/services/teacherAuth.ts` integra o cadastro, a sessão e a recuperação de senha. `src/services/teacherClasses.ts` consulta e atualiza `turmas`.
+- `src/services/expeditionAccess.ts` é o cliente compartilhado e mantém as chamadas do fluxo de ingresso anterior. `src/services/rooms.ts` preserva as sessões locais existentes.
 
 ## Verificar
 
@@ -54,7 +56,7 @@ node --test --test-isolation=none tests/*.test.mjs
 
 O build inclui a checagem de tipos. Os testes cobrem a sequência de frames, validação de sala, participantes homônimos, bloqueio antes do início, retomada dos registros, rejeição de avanços fora de ordem e cálculo da pontuação. Eles também verificam o feedback de cada alternativa, os estados iniciais dos botões e a estrutura dos componentes compartilhados.
 
-O [teste de isolamento](supabase/tests/professor_access.sql) executa as políticas para duas contas de professor, dois alunos e uma conta sem autorização. Execute o SQL em uma base de teste com a migração aplicada. Os registros criados pelo teste são revertidos ao final.
+Para o esquema anterior, o [teste de isolamento](supabase/tests/professor_access.sql) executa as políticas para duas contas de professor, dois alunos e uma conta sem autorização. Execute o SQL em uma base de teste com a migração aplicada. Os registros criados pelo teste são revertidos ao final.
 
 ## Pendências
 

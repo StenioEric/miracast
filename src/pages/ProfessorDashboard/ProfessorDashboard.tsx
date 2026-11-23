@@ -1,11 +1,11 @@
-import type { Room } from "../../services/rooms";
+import type { TeacherClass } from "../../services/teacherClasses";
 import { Button } from "../../components/Button/Button";
 import { ContentCard } from "../../components/ContentCard/ContentCard";
 import { ProfessorLayout } from "../../components/ProfessorLayout/ProfessorLayout";
 import "./ProfessorDashboard.css";
 
 type ProfessorDashboardProps = {
-  rooms: (Room & { participantCount: number })[];
+  rooms: TeacherClass[];
   onCreateRoom: () => void;
   onOpenRoom: (code: string) => void;
   onBack: () => void;
@@ -14,8 +14,8 @@ type ProfessorDashboardProps = {
 export function ProfessorDashboard({ rooms, onCreateRoom, onOpenRoom, onBack }: ProfessorDashboardProps) {
   return (
     <ProfessorLayout frame="2020:16"
-      title="Minhas salas"
-      navigation={<Button variant="link" onClick={onBack}>Voltar à seleção de perfil</Button>}
+      title="Minhas turmas"
+      navigation={<Button variant="link" onClick={onBack}>Sair</Button>}
     >
       <ContentCard>
         {rooms.length ? <ul className="professor__list">
@@ -23,12 +23,11 @@ export function ProfessorDashboard({ rooms, onCreateRoom, onOpenRoom, onBack }: 
             <li key={room.code}>
               <h2>{room.name}</h2>
               <p>Código: {room.code}</p>
-              <p>{room.participantCount} {room.participantCount === 1 ? "aluno" : "alunos"} · {room.started ? "Em andamento" : "Aguardando início"}</p>
               <Button variant="link" onClick={() => onOpenRoom(room.code)}>Acessar {room.name}</Button>
             </li>
           ))}
-        </ul> : <p>Nenhuma sala criada.</p>}
-        <Button onClick={onCreateRoom}>Criar nova sala</Button>
+        </ul> : <p>Nenhuma turma cadastrada.</p>}
+        <Button onClick={onCreateRoom}>Criar nova turma</Button>
       </ContentCard>
     </ProfessorLayout>
   );

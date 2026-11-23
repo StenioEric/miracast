@@ -9,16 +9,32 @@ type ProfessorLoginProps = {
   configured: boolean;
   pending: boolean;
   error: string;
+  status?: string;
   onBackToStudent: () => void;
   onLogin: (email: string, password: string) => void;
+  onRegister: (email: string, password: string) => void;
+  onRecover: (email: string) => void;
 };
 
-export function ProfessorLogin({ configured, pending, error, onBackToStudent, onLogin }: ProfessorLoginProps) {
+export function ProfessorLogin({
+  configured, pending, error, status, onBackToStudent, onLogin, onRegister, onRecover,
+}: ProfessorLoginProps) {
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!configured || pending) return;
-    const data = new FormData(event.currentTarget);
-    onLogin(String(data.get("email")), String(data.get("password")));
+    const form = event.currentTarget;
+    const data = new FormData(form);
+    const email = String(data.get("email"));
+    const password = String(data.get("password"));
+    const action = (event.nativeEvent as SubmitEvent).submitter?.getAttribute("value");
+    if (action === "recover") {
+      const emailField = form.elements.namedItem("email");
+      if (emailField instanceof HTMLInputElement && emailField.reportValidity()) onRecover(email);
+    } else if (action === "register") {
+      onRegister(email, password);
+    } else {
+      onLogin(email, password);
+    }
   }
 
   return (
@@ -42,7 +58,10 @@ export function ProfessorLogin({ configured, pending, error, onBackToStudent, on
         </label>
         {!configured && <p role="status">O login do professor ainda não está configurado.</p>}
         {error && <p className="app-error" role="alert">{error}</p>}
+        {status && <p role="status">{status}</p>}
         <Button type="submit" disabled={!configured || pending}>{pending ? "Aguarde…" : "Entrar"}</Button>
+        <Button type="submit" variant="secondary" value="register" disabled={!configured || pending}>Criar conta</Button>
+        <Button type="submit" variant="link" value="recover" formNoValidate disabled={!configured || pending}>Esqueci minha senha</Button>
       </ContentCard>
     </ProfessorLayout>
   );
