@@ -99,3 +99,10 @@ export async function getArchivedParticipants(expeditionId: string): Promise<Cla
   if (error) throw new Error("Não foi possível carregar os resultados.");
   return data as ClassParticipant[];
 }
+
+export async function deleteArchivedExpedition(expeditionId: string) {
+  const { data, error } = await client().from("miracast_expedition_history")
+    .delete().eq("id", expeditionId).select("id").maybeSingle();
+  if (error) throw new Error("Não foi possível excluir a expedição. Tente novamente.");
+  if (!data) throw new Error("A expedição já foi excluída ou não está disponível.");
+}

@@ -31,7 +31,7 @@ function classroomApi() {
     const method = request.method();
     const headers = {
       "access-control-allow-origin": "*",
-      "access-control-allow-methods": "GET, POST, OPTIONS, PATCH",
+      "access-control-allow-methods": "GET, POST, OPTIONS, PATCH, DELETE",
       "access-control-allow-headers": request.headers()["access-control-request-headers"] ?? "*",
       "x-supabase-api-version": "2024-01-01",
     };
@@ -80,6 +80,12 @@ function classroomApi() {
         return send(closedRooms.has(classId) ? [{ closed_at: closedRooms.get(classId) }] : []);
       case "/rest/v1/miracast_expedition_history":
         if (!historyEnabled) return send({ code: "PGRST205", message: "Tabela ausente" }, 404);
+        if (method === "DELETE") {
+          const index = history.findIndex(({ expedition }) => expedition.id === filter("id"));
+          if (index === -1) return send([]);
+          const [deleted] = history.splice(index, 1);
+          return send([{ id: deleted.expedition.id }]);
+        }
         return send(history.filter(({ expedition }) => expedition.turma_id === classId).map(({ expedition }) => expedition));
       case "/rest/v1/miracast_archived_enrollments":
         return send(history.find(({ expedition }) => expedition.id === filter("expedition_id"))?.participants ?? []);
@@ -153,7 +159,7 @@ const text = (page, value) => page.getByText(value, { exact: true });
 const heading = (page, name) => page.getByRole("heading", { name, exact: true });
 const wait = (locator) => locator.waitFor({ state: "visible" });
 
-test("a expedição encerra o código, preserva o histórico e exige uma nova turma", { timeout: 90_000 }, async (t) => {
+test("a expedição encerra o código, permite excluir o histórico e exige uma nova turma", { timeout: 90_000 }, async (t) => {
   process.env.VITE_SUPABASE_URL = databaseHost;
   process.env.VITE_SUPABASE_PUBLISHABLE_KEY = "sb_publishable_browser_test";
   process.env.VITE_PASSWORD_MIN_LENGTH = "8";
@@ -324,6 +330,18 @@ test("a expedição encerra o código, preserva o histórico e exige uma nova tu
   await wait(heading(teacher, "Maria da Silva"));
   await text(teacher, "Respostas abertas").click();
   await wait(text(teacher, "Os ligantes ocupam posições espelhadas."));
+
+  await button(teacher, "Excluir expedição").click();
+  await wait(button(teacher, "Excluir definitivamente"));
+  await button(teacher, "Cancelar").click();
+  await wait(text(teacher, "Os ligantes ocupam posições espelhadas."));
+  await button(teacher, "Excluir expedição").click();
+  await button(teacher, "Excluir definitivamente").click();
+  await wait(text(teacher, "Expedição excluída."));
+  await heading(teacher, "Expedições anteriores").waitFor({ state: "hidden" });
+  await wait(text(teacher, "Expedição encerrada"));
+  assert.equal(await button(teacher, "Iniciar expedição").count(), 0);
+  await wait(heading(student, "Sala ou sessão indisponível"));
 
   const newStudent = await pageInNewContext();
   await newStudent.goto(invite);

@@ -19,15 +19,21 @@ type ProfessorRoomProps = TeacherClassState & {
   onRename: (name: string) => void;
   onStart: () => void;
   onEnd: (startedAt: string) => void;
+  onDeleteExpedition: (id: string) => void;
   onBackToDashboard: () => void;
 };
 
 const dateFormat = new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeStyle: "short" });
 
-function ArchivedResults({ expedition }: { expedition: ExpeditionHistory }) {
+function ArchivedResults({ expedition, pending, onDelete }: {
+  expedition: ExpeditionHistory;
+  pending: boolean;
+  onDelete?: (id: string) => void;
+}) {
   const [participants, setParticipants] = useState<ClassParticipant[]>();
   const [error, setError] = useState("");
   const [revision, setRevision] = useState(0);
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -45,12 +51,21 @@ function ArchivedResults({ expedition }: { expedition: ExpeditionHistory }) {
       <Button variant="secondary" onClick={() => { setError(""); setRevision(revision + 1); }}>Tentar novamente</Button>
     </> : participants ? <TeacherResults participants={participants} started archived />
       : <p role="status">Carregando resultados…</p>}
+    {onDelete && (confirmDelete ? <div className="professor__confirmation">
+      <p>Esta ação apaga a expedição e todas as respostas dela do banco de dados. A exclusão é definitiva.</p>
+      <div className="professor__actions">
+        <Button variant="secondary" disabled={pending} onClick={() => setConfirmDelete(false)}>Cancelar</Button>
+        <Button disabled={pending} onClick={() => onDelete(expedition.id)}>Excluir definitivamente</Button>
+      </div>
+    </div> : <Button variant="secondary" disabled={pending} onClick={() => setConfirmDelete(true)}>
+      Excluir expedição
+    </Button>)}
   </>;
 }
 
 export function ProfessorRoom({
   room, startedAt, closed, participants, history, historyError, created, pending, status,
-  onViewRoom, onCreateRoom, onRename, onStart, onEnd, onBackToDashboard,
+  onViewRoom, onCreateRoom, onRename, onStart, onEnd, onDeleteExpedition, onBackToDashboard,
 }: ProfessorRoomProps) {
   const [editionToEnd, setEditionToEnd] = useState<string | null>(null);
   const confirmEnd = startedAt !== null && startedAt === editionToEnd;
@@ -121,7 +136,8 @@ export function ProfessorRoom({
               {history.map(({ id, started_at }) => <option key={id} value={id}>{dateFormat.format(new Date(started_at))}</option>)}
             </select>
           </label>
-          {previous && <ArchivedResults key={previous.id} expedition={previous} />}
+          {previous && <ArchivedResults key={previous.id} expedition={previous} pending={pending}
+            onDelete={historyError ? undefined : onDeleteExpedition} />}
         </ContentCard>}
       </>}
     </ProfessorLayout>

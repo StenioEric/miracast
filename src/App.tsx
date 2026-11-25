@@ -13,7 +13,7 @@ import {
 } from "./services/teacherAuth";
 import type { AuthPurpose } from "./services/teacherAuth";
 import {
-  createTeacherClass, getTeacherClass, listTeacherClasses,
+  createTeacherClass, deleteArchivedExpedition, getTeacherClass, listTeacherClasses,
   manageTeacherExpedition, renameTeacherClass,
 } from "./services/teacherClasses";
 import type { TeacherClass, TeacherClassState } from "./services/teacherClasses";
@@ -463,6 +463,11 @@ function App() {
             await manageTeacherExpedition(screen.roomCode, "end", startedAt);
             setRevision((value) => value + 1);
             setStatus("Expedição encerrada. Os resultados estão no histórico.");
+          })}
+          onDeleteExpedition={(id) => void run(async () => {
+            await deleteArchivedExpedition(id);
+            setRevision((value) => value + 1);
+            setStatus("Expedição excluída.");
           })}
           onBackToDashboard={() => goTo({ id: "dashboard" })}
         /> : <SessaoIndisponivel onBack={() => goTo({ id: "dashboard" })}
