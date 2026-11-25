@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useStudentDraft } from "../../components/StudentWork/studentWork";
 import type { FormEvent } from "react";
 
 import type { Answer } from "../../domain/expedition";
@@ -22,13 +22,12 @@ const supportIdeas = [
 ];
 
 export function GirarMudaIdentidade({ onContinue }: GirarMudaIdentidadeProps) {
-  const [answer, setAnswer] = useState("");
-  const [selectedIdeas, setSelectedIdeas] = useState<string[]>([]);
-  const [submitted, setSubmitted] = useState(false);
+  const [answer, setAnswer] = useStudentDraft("rotation-answer", "");
+  const [selectedIdeas, setSelectedIdeas] = useStudentDraft<string[]>("rotation-ideas", []);
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (answer.trim()) setSubmitted(true);
+    if (answer.trim() && remaining >= 0) onContinue({ value: answer.trim() + ideas });
   };
 
   const toggleIdea = (idea: string) => {
@@ -39,21 +38,16 @@ export function GirarMudaIdentidade({ onContinue }: GirarMudaIdentidadeProps) {
     );
   };
 
-  function continueActivity() {
-    const ideas = selectedIdeas.length ? `\nIdeias de apoio: ${selectedIdeas.join(", ")}` : "";
-    onContinue({ value: answer.trim() + ideas });
-  }
+  const ideas = selectedIdeas.length ? `\nIdeias de apoio: ${selectedIdeas.join(", ")}` : "";
+  const remaining = 2000 - [...(answer.trim() + ideas)].length;
 
   return (
     <ActivityLayout
       step="rotation-identity"
-      stage="Ação Material Concreta · Tela 4"
       title="Missão 1.2 — Girar muda a identidade?"
-      guidance="Observe o cubo girando. Em uma palavra: o objeto mudou de identidade ao girar? Por quê?"
+      guidance="Observe o cubo girando. O objeto mudou de identidade ao girar? Explique em uma frase."
       footer={<PageFooter>
-        {submitted
-          ? <Button onClick={continueActivity}>Continuar</Button>
-          : <Button form="resposta-giro" type="submit" disabled={!answer.trim()}>Enviar resposta</Button>}
+        <Button form="resposta-giro" type="submit" disabled={!answer.trim() || remaining < 0}>Salvar resposta e continuar</Button>
       </PageFooter>}
     >
       <ContentCard aria-label="Pergunta sobre rotação">
@@ -73,15 +67,16 @@ export function GirarMudaIdentidade({ onContinue }: GirarMudaIdentidadeProps) {
             <span className="girar-identidade__sr-only">Escreva sua resposta</span>
             <textarea className="form-control" rows={4}
               value={answer}
-              onChange={(event) => {
-                setAnswer(event.target.value);
-                setSubmitted(false);
-              }}
+              onChange={(event) => setAnswer(event.target.value)}
+              aria-describedby="limite-resposta-giro"
               placeholder="Escreva sua resposta..."
-              maxLength={2000}
               required
             />
           </label>
+
+          <p id="limite-resposta-giro" className={remaining < 0 ? "app-error" : undefined}>
+            {remaining < 0 ? `Reduza a resposta em ${-remaining} caracteres.` : `${remaining} caracteres disponíveis, incluindo as ideias de apoio.`}
+          </p>
 
           <fieldset className="girar-identidade__apoio">
             <legend>Ideias-chave de apoio:</legend>

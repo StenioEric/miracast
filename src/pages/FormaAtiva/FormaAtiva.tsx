@@ -10,7 +10,6 @@ export function FormaAtiva({ onContinue }: { onContinue: (answer: Answer) => voi
     <ActivityLayout
       step="active-form"
       frame="2003:1008"
-      stage="Ação Verbalizada · Tela 14"
       title="Missão 3.3 — A forma ativa"
       guidance={
         <>
@@ -21,7 +20,6 @@ export function FormaAtiva({ onContinue }: { onContinue: (answer: Answer) => voi
     >
       <ChoiceQuestion
         question={questions["active-form"]}
-        reviewOnSelect
         onContinue={onContinue}
         illustration={
           <img

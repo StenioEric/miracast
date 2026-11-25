@@ -1,3 +1,4 @@
+import { isAuthWeakPasswordError } from "@supabase/supabase-js";
 import type { User } from "@supabase/supabase-js";
 
 import { client } from "./expeditionAccess";
@@ -43,6 +44,25 @@ export async function loginTeacher(email: string, password: string) {
   await requireTeacher(data.user);
 }
 
+function passwordError(problem: unknown) {
+  if (!isAuthWeakPasswordError(problem)) return null;
+  if (problem.reasons.includes("pwned")) return "Essa senha já apareceu em vazamentos. Escolha outra senha.";
+  if (problem.reasons.includes("length")) return "A senha está curta para a regra do servidor. Use mais caracteres.";
+  if (problem.reasons.includes("characters")) return "A senha precisa incluir os tipos de caracteres exigidos. Confira as regras do campo.";
+  return "Escolha outra senha e confira os requisitos abaixo do campo.";
+}
+
+export async function resendTeacherConfirmation(email: string) {
+  const { error } = await client().auth.resend({
+    type: "signup", email: email.trim(), options: { emailRedirectTo: redirectUrl("confirmacao") },
+  });
+  if (error?.code === "over_email_send_rate_limit") throw new Error("Aguarde um pouco antes de solicitar outro e-mail.");
+  if (error && error.code !== "user_not_found" && error.code !== "email_already_confirmed") {
+    throw new Error("Não foi possível reenviar a confirmação. Tente novamente mais tarde.");
+  }
+  return confirmationMessage;
+}
+
 export async function registerTeacher(email: string, password: string) {
   const { data, error } = await client().auth.signUp({
     email: email.trim(),
@@ -50,7 +70,8 @@ export async function registerTeacher(email: string, password: string) {
     options: { emailRedirectTo: redirectUrl("confirmacao") },
   });
   if (error?.code === "user_already_exists" || error?.code === "email_exists") return confirmationMessage;
-  if (error?.code === "weak_password") throw new Error("A senha não atende aos requisitos de segurança do projeto.");
+  const reason = passwordError(error);
+  if (reason) throw new Error(reason);
   if (error) throw new Error("Não foi possível solicitar o cadastro. Confira os dados e tente novamente mais tarde.");
   if (!data.session) return confirmationMessage;
 
@@ -62,6 +83,7 @@ export async function requestPasswordReset(email: string) {
   const { error } = await client().auth.resetPasswordForEmail(email.trim(), {
     redirectTo: redirectUrl("recuperacao"),
   });
+  if (error?.code === "over_email_send_rate_limit") throw new Error("Aguarde um pouco antes de solicitar outro e-mail.");
   if (error) throw new Error("Não foi possível solicitar a recuperação. Tente novamente mais tarde.");
   return "Se houver uma conta para esse e-mail, você receberá um link para redefinir a senha.";
 }
@@ -94,7 +116,8 @@ export async function completeAuthLink(purpose: AuthPurpose) {
 export async function resetTeacherPassword(password: string) {
   if (!await verifyTeacherSession()) throw new Error("Esta conta não tem acesso à área do professor.");
   const { error } = await client().auth.updateUser({ password });
-  if (error?.code === "weak_password") throw new Error("A senha não atende aos requisitos de segurança do projeto.");
+  const reason = passwordError(error);
+  if (reason) throw new Error(reason);
   if (error?.code === "same_password") throw new Error("Escolha uma senha diferente da atual.");
   if (error) throw new Error("Não foi possível redefinir a senha. Solicite um novo link se a sessão tiver expirado.");
 }

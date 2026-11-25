@@ -4,15 +4,15 @@ import type { User } from "@supabase/supabase-js";
 import type { Answer, ExpeditionStep } from "./domain/expedition";
 import { ActivityRoutes } from "./navigation/ActivityRoutes";
 import {
-  advanceExpedition, getStudentState, joinExpedition, logoutExpedition, supabase,
+  advanceExpedition, getStudentState, issueClassResumeCode, joinExpedition, logoutExpedition, resumeClass, supabase,
 } from "./services/expeditionAccess";
 import type { StudentState } from "./services/expeditionAccess";
 import {
   completeAuthLink, loginTeacher, registerTeacher, requestPasswordReset,
-  resetTeacherPassword, verifyTeacherSession,
+  resendTeacherConfirmation, resetTeacherPassword, verifyTeacherSession,
 } from "./services/teacherAuth";
 import type { AuthPurpose } from "./services/teacherAuth";
-import { createTeacherClass, getTeacherClass, listTeacherClasses, renameTeacherClass, startTeacherExpedition } from "./services/teacherClasses";
+import { createTeacherClass, getTeacherClass, listTeacherClasses, renameTeacherClass, manageTeacherExpedition } from "./services/teacherClasses";
 import type { TeacherClass, TeacherClassState } from "./services/teacherClasses";
 import { browserRoomStore, subscribeToRooms } from "./services/rooms";
 import { ExpeditionEntry } from "./pages/ExpeditionEntry/ExpeditionEntry";
@@ -29,6 +29,10 @@ import { ProfessorRoom } from "./pages/ProfessorRoom/ProfessorRoom";
 import { RedefinirSenha } from "./pages/RedefinirSenha/RedefinirSenha";
 import { PageHeader, PageLayout } from "./components/PageLayout/PageLayout";
 
+import { AnswerReview } from "./components/AnswerReview/AnswerReview";
+import { StudentResume } from "./components/StudentResume/StudentResume";
+import { clearAllStudentDrafts, clearStudentDrafts, studentDraftKey, StudentWorkContext } from "./components/StudentWork/studentWork";
+
 type Screen =
   | { id: "start" | "entry" | "professor-login" | "dashboard" | "create-room" | "student" }
   | { id: "room"; roomCode: string; created?: boolean }
@@ -41,10 +45,26 @@ type RemoteData =
   | { kind: "room"; details: TeacherClassState | null }
   | { kind: "student"; details: StudentState | null };
 
-type Snapshot = { screen: Screen; userId: string } & (
-  | { data: RemoteData }
-  | { error: string }
+type Snapshot = { screen: Screen; userId: string; data?: RemoteData; error?: string };
+
+type AnswerSave = {
+  step: ExpeditionStep;
+  answer?: Answer;
+} & (
+  | { state: "saving" | "saved" }
+  | { state: "failed"; message: string }
 );
+
+function getInviteCode() {
+  return new URLSearchParams(window.location.search).get("turma")?.replace(/\s/g, "").toUpperCase();
+}
+
+function clearInviteCode() {
+  const url = new URL(window.location.href);
+  if (!url.searchParams.has("turma")) return;
+  url.searchParams.delete("turma");
+  window.history.replaceState(window.history.state, "", url);
+}
 
 const legacyParticipantKey = "miracast:active-participant";
 const screenKey = "miracast:screen";
@@ -81,7 +101,7 @@ function initialScreen(): Screen {
   } catch {
     // A seleção de perfil também funciona com o armazenamento bloqueado.
   }
-  return { id: "start" };
+  return { id: getInviteCode() ? "entry" : "start" };
 }
 
 function message(problem: unknown) {
@@ -129,7 +149,13 @@ function useRemoteData(screen: Screen, user: User | null | undefined, teacherAut
         }
         if (!cancelled) setSnapshot({ ...scope, data });
       } catch (problem) {
-        if (!cancelled) setSnapshot({ ...scope, error: message(problem) });
+        if (!cancelled) {
+          setSnapshot((current) => ({
+            ...scope,
+            data: current?.screen === screen && current.userId === userId ? current.data : undefined,
+            error: message(problem),
+          }));
+        }
       }
       if (!cancelled && (screen.id === "student" || screen.id === "room")) {
         timer = window.setTimeout(refresh, 3000);
@@ -163,6 +189,8 @@ function App() {
   const [error, setError] = useState("");
   const [status, setStatus] = useState("");
   const [pending, setPending] = useState(false);
+  const [save, setSave] = useState<AnswerSave | null>(null);
+  const [resumeCode, setResumeCode] = useState("");
   const working = useRef(false);
   const [revision, setRevision] = useState(0);
   const access = useTeacherAccess(user);
@@ -178,7 +206,7 @@ function App() {
     if (screen.id === "local-student") return subscribeToRooms(() => setRevision((value) => value + 1));
   }, [screen.id]);
 
-  const data = remote && "data" in remote ? remote.data : null;
+  const data = remote?.data;
   const student = screen.id === "local-student"
     ? readLocalStudent(screen.participantId)
     : data?.kind === "student" ? data.details : null;
@@ -191,6 +219,8 @@ function App() {
   const goTo = useCallback((target: Screen) => {
     setError("");
     setStatus("");
+    setSave(null);
+    setResumeCode("");
     setScreen(target);
     try {
       if (isSavedScreen(target)) {
@@ -241,18 +271,28 @@ function App() {
   function leave(target: Screen = { id: "start" }) {
     void run(async () => {
       if (user) await logoutExpedition();
+      clearAllStudentDrafts();
+      clearInviteCode();
       goTo(target);
     });
   }
 
   function advance(step: ExpeditionStep, answer?: Answer) {
-    if (!student) return;
+    if (!student || student.participant.step !== step || student.ended) return;
     void run(async () => {
-      if (screen.id === "local-student") {
-        browserRoomStore().advance(student.participant.id, step, answer);
-      } else {
-        await advanceExpedition(step, answer, student.legacy);
-        setRevision((value) => value + 1);
+      const draftKey = studentDraftKey(student.participant.id, step);
+      setSave({ step, answer, state: "saving" });
+      try {
+        if (screen.id === "local-student") {
+          browserRoomStore().advance(student.participant.id, step, answer);
+        } else {
+          await advanceExpedition(step, answer, student.legacy);
+          setRevision((value) => value + 1);
+        }
+        clearStudentDrafts(draftKey);
+        setSave({ step, answer, state: "saved" });
+      } catch (problem) {
+        setSave({ step, answer, state: "failed", message: message(problem) });
       }
     });
   }
@@ -274,29 +314,70 @@ function App() {
         else goTo({ id: "dashboard" });
       })}
       onRecover={(email) => void run(async () => { setStatus(await requestPasswordReset(email)); })}
+      onResend={(email) => void run(async () => { setStatus(await resendTeacherConfirmation(email)); })}
+      onModeChange={() => { setError(""); setStatus(""); }}
     />;
   }
 
   function renderStudent() {
     if (!student) return <SessaoIndisponivel onBack={() => leave()} />;
-    const { participant, room, participantCount } = student;
+    const { participant, room, participantCount, legacy, ended } = student;
+    const resume = screen.id === "student" && !legacy ? <StudentResume code={resumeCode} pending={pending}
+      onIssue={() => void run(async () => { setResumeCode(await issueClassResumeCode()); })} /> : undefined;
+
+    if (ended && participant.step !== "master") {
+      return <SessaoIndisponivel ended onBack={() => leave({ id: "entry" })}>
+        <AnswerReview answers={participant.answers} />
+        {resume}
+      </SessaoIndisponivel>;
+    }
     if (!room.started) return <WaitingRoom
       participantName={participant.name}
       participantCount={participantCount}
       roomCode={room.code}
+      roomName={room.name}
+      resume={resume}
       onBack={() => leave()}
     />;
-    switch (participant.step) {
-      case "motivation":
-        return <Motivation onStartProtocol={() => advance("motivation")} />;
-      case "protocol":
-        return <Protocol onStartPhase1={() => advance("protocol")} />;
-      case "classification":
-        return <Classification onContinue={(answer) => advance("classification", answer)} />;
-      default:
-        return <ActivityRoutes step={participant.step} answers={participant.answers}
-          studentName={participant.name} onContinue={(answer) => advance(participant.step, answer)} onFinish={() => leave()} />;
+
+    const step = participant.step;
+    const failed = save?.state === "failed" && save.step === step ? save : null;
+    const reconnecting = Boolean(remote?.error) || navigator.onLine === false;
+    let saveMessage: string | undefined;
+    if (failed) {
+      saveMessage = reconnecting ? "Aguardando conexão. Sua resposta continua nesta tela." : failed.message;
+    } else if (reconnecting) {
+      saveMessage = "Conexão temporariamente indisponível. O que você digitou continua nesta tela.";
+    } else if (save?.state === "saving") {
+      saveMessage = "Salvando resposta…";
+    } else if (save?.state === "saved") {
+      saveMessage = "Progresso salvo.";
     }
+
+    let page;
+    switch (step) {
+      case "motivation":
+        page = <Motivation onStartProtocol={() => advance(step)} />;
+        break;
+      case "protocol":
+        page = <Protocol onStartPhase1={() => advance(step)} />;
+        break;
+      case "classification":
+        page = <Classification onContinue={(answer) => advance(step, answer)} />;
+        break;
+      default:
+        page = <ActivityRoutes step={step} answers={participant.answers} studentName={participant.name}
+          onContinue={(answer) => advance(step, answer)} onFinish={() => leave()} />;
+    }
+
+    const draftKey = studentDraftKey(participant.id, step);
+
+    return <StudentWorkContext.Provider key={draftKey}
+      value={{ draftKey, message: saveMessage, error: Boolean(failed), busy: save?.state === "saving",
+        retry: failed ? () => advance(step, failed.answer) : undefined, resume,
+        onEdit: () => setSave((current) => current?.state === "failed" ? null : current) }}>
+      {page}
+    </StudentWorkContext.Provider>;
   }
 
   function renderScreen() {
@@ -304,10 +385,18 @@ function App() {
       case "start":
         return <Start onEnterAsStudent={() => goTo({ id: "entry" })} onEnterAsProfessor={() => goTo({ id: "professor-login" })} />;
       case "entry":
-        return <ExpeditionEntry onBack={() => leave()} pending={pending} onJoin={(code, name) => void run(async () => {
-          await joinExpedition(code, name);
-          goTo({ id: "student" });
-        })} />;
+        return <ExpeditionEntry onBack={() => leave()} pending={pending} error={error} inviteCode={getInviteCode()}
+          onModeChange={() => setError("")}
+          onJoin={(code, name) => void run(async () => {
+            await joinExpedition(code, name);
+            clearInviteCode();
+            goTo({ id: "student" });
+          })}
+          onResume={(code) => void run(async () => {
+            await resumeClass(code);
+            clearInviteCode();
+            goTo({ id: "student" });
+          })} />;
       case "professor-login":
         return renderLogin();
       case "auth-callback":
@@ -334,7 +423,8 @@ function App() {
     if (screen.id === "student") {
       if (!user?.is_anonymous) return <SessaoIndisponivel onBack={() => leave()} />;
       if (!remote) return <LoadingScreen />;
-      if ("error" in remote) return <SessaoIndisponivel onBack={() => leave()} />;
+      if (remote.error && !data) return <SessaoIndisponivel onBack={() => leave({ id: "entry" })}
+        onRetry={() => setRevision((value) => value + 1)} />;
       return renderStudent();
     }
 
@@ -344,7 +434,8 @@ function App() {
     switch (screen.id) {
       case "dashboard":
         if (!remote) return <LoadingScreen />;
-        if (data?.kind !== "dashboard") return <SessaoIndisponivel onBack={() => leave()} />;
+        if (data?.kind !== "dashboard") return <SessaoIndisponivel onBack={() => leave()}
+          onRetry={() => setRevision((value) => value + 1)} />;
         return <ProfessorDashboard
           rooms={data.rooms}
           onCreateRoom={() => goTo({ id: "create-room" })}
@@ -367,17 +458,25 @@ function App() {
           {...details}
           created={screen.created}
           pending={pending}
+          status={status}
           onViewRoom={() => goTo({ id: "room", roomCode: screen.roomCode })}
           onRename={(name) => void run(async () => {
             await renameTeacherClass(screen.roomCode, name);
             setRevision((value) => value + 1);
+            setStatus("Nome da turma salvo.");
           })}
           onStart={() => void run(async () => {
-            await startTeacherExpedition(screen.roomCode);
+            await manageTeacherExpedition(screen.roomCode, "start");
             setRevision((value) => value + 1);
           })}
+          onEnd={(startedAt) => void run(async () => {
+            await manageTeacherExpedition(screen.roomCode, "end", startedAt);
+            setRevision((value) => value + 1);
+            setStatus("Expedição encerrada. Os resultados estão no histórico.");
+          })}
           onBackToDashboard={() => goTo({ id: "dashboard" })}
-        /> : <SessaoIndisponivel onBack={() => goTo({ id: "dashboard" })} />;
+        /> : <SessaoIndisponivel onBack={() => goTo({ id: "dashboard" })}
+          onRetry={remote.error ? () => setRevision((value) => value + 1) : undefined} />;
       }
     }
   }
@@ -385,7 +484,9 @@ function App() {
   const loginVisible = screen.id === "professor-login"
     || (user !== undefined && (!user || user.is_anonymous || access?.allowed === false)
       && (screen.id === "dashboard" || screen.id === "create-room" || screen.id === "room"));
-  const problem = !loginVisible && screen.id !== "reset-password" && (error || (remote && "error" in remote ? remote.error : ""));
+  const showRemoteError = screen.id !== "student" || !student?.room.started;
+  const problem = !loginVisible && screen.id !== "reset-password" && screen.id !== "entry"
+    && (error || (showRemoteError ? remote?.error : ""));
   return <>
     {problem && <p className="app-error" role="alert">{problem}</p>}
     {renderScreen()}

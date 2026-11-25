@@ -10,12 +10,10 @@ export function VerificacaoQV2({ onContinue }: { onContinue: (answer: Answer) =>
     <ActivityLayout
       step="qv2"
       frame="2003:670"
-      stage="Verificação · Tela 11"
       guidance="Quatro moléculas. Qual possui um carbono quiral?"
     >
       <ChoiceQuestion
         question={questions["qv2"]}
-        reviewOnSelect
         onContinue={onContinue}
       />
     </ActivityLayout>

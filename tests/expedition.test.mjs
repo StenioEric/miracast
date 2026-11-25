@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { activities, activityProgress, expeditionSteps, nextStep, scoreSummary } from "../src/domain/expedition.ts";
+import { activities, activityProgress, expeditionPhases, expeditionSteps, nextStep, phaseIndex, scoreSummary } from "../src/domain/expedition.ts";
 import { createRoomStore } from "../src/services/rooms.ts";
 
 const requiredFrames = [
@@ -21,13 +21,18 @@ function memoryStorage() {
 
 test("percorre as 18 etapas em ordem e mantém estados auxiliares dentro da atividade", () => {
   assert.deepEqual(activities.map(({ frame }) => frame), requiredFrames);
+  assert.equal(phaseIndex("protocol"), -1);
+  assert.equal(phaseIndex("classification"), 0);
+  assert.deepEqual(expeditionPhases.map(({ first }) => phaseIndex(first)), [0, 1, 2, 3, 4]);
+  assert.equal(phaseIndex("master"), expeditionPhases.length);
+  assert.deepEqual(activityProgress("qv1"), { completed: 3, total: 18 });
   const visited = [];
   for (let step = "motivation"; step; step = nextStep(step)) visited.push(step);
   assert.deepEqual(visited, expeditionSteps);
   assert.equal(nextStep("classification"), "rotation-identity");
   assert.equal(nextStep("master"), undefined);
   assert.equal(activities.at(-1).title, "Mestre do Quiral");
-  assert.deepEqual(activityProgress("master"), { completed: 17, total: 17 });
+  assert.deepEqual(activityProgress("master"), { completed: 18, total: 18 });
 });
 
 test("cria salas distintas, rejeita códigos desconhecidos e admite homônimos", () => {

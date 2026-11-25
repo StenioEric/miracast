@@ -160,3 +160,53 @@
   text-align: center;
   font-size: var(--font-small);
 }
+
+.answer-review summary {
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.answer-review dl {
+  display: grid;
+  gap: var(--space-3);
+  margin-block: var(--space-3) 0;
+}
+
+.answer-review dt {
+  font-weight: 800;
+}
+
+.answer-review dd {
+  display: grid;
+  gap: var(--space-1);
+  margin-inline-start: 0;
+}
+
+.answer-review__value {
+  white-space: pre-wrap;
+}
+
+@media print {
+  body:has(.master-page) #root > :not(.master-page),
+  .master-page .page__decoration,
+  .master-page .page-header,
+  .master-page .page-footer,
+  .master-page .page__content > :not(.master-certificate) {
+    display: none !important;
+  }
+
+  .master-page, .master-page .page__shell {
+    min-height: 0;
+    width: 100%;
+    padding: 0;
+    background: #fff;
+  }
+
+  .master-page .master-certificate {
+    margin: 1cm auto;
+    padding: 1.5cm 1cm;
+    max-width: 17cm;
+    border: 1px solid #287e89;
+    break-inside: avoid;
+  }
+}

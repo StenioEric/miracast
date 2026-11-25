@@ -24,18 +24,6 @@ test("a questão usa o enunciado como legenda e mantém a ação inicial desabil
   assert.match(markup, /<footer class="page-footer"><button disabled=""[^>]*>Verificar resposta<\/button>/);
 });
 
-test("a questão com revisão imediata mantém o botão de continuar desabilitado até a seleção", async () => {
-  const { ChoiceQuestion } = await server.ssrLoadModule("/src/components/ActivityResponse/ActivityResponse.tsx");
-  const markup = renderToStaticMarkup(createElement(ChoiceQuestion, {
-    question: questions.qv2,
-    reviewOnSelect: true,
-    onContinue() {},
-  }));
-
-  assert.match(markup, /<button disabled=""[^>]*>Continuar<\/button>/);
-  assert.doesNotMatch(markup, /Verificar resposta/);
-});
-
 for (const [step, frame] of [
   ["lactic-acid", "2003:410"],
   ["compare-forms", "2003:348"],
@@ -43,32 +31,31 @@ for (const [step, frame] of [
   ["augmented-reality", "2003:264"],
   ["qv5", "2003:236"],
 ]) {
-  test(`${step} usa o layout compartilhado e exibe Continuar desabilitado antes da seleção`, async () => {
+  test(`${step} usa o layout compartilhado e exibe Verificar resposta desabilitado antes da seleção`, async () => {
     const { ActivityRoutes } = await server.ssrLoadModule("/src/navigation/ActivityRoutes.tsx");
     const markup = renderToStaticMarkup(createElement(ActivityRoutes, { step, onContinue() {} }));
     const { prompt, options } = questions[step];
-    const card = markup.match(/<section class="content-card">.*?<\/section>/)?.[0];
+    const card = markup.match(/<div class="choice-question"><section class="content-card">.*?<\/section>/)?.[0];
 
     assert.ok(markup.includes(`class="page page--expedition" data-node-id="${frame}"`));
     assert.match(markup, /<progress class="expedition-progress"/);
     assert.ok(card?.includes(renderToStaticMarkup(createElement("legend", null, prompt))));
     assert.equal([...card.matchAll(/type="radio"/g)].length, options.length);
     for (const { value } of options) assert.ok(card.includes(value));
-    assert.match(markup, /<footer class="page-footer"><button disabled=""[^>]*>Continuar<\/button>/);
+    assert.match(markup, /<footer class="page-footer"><button disabled=""[^>]*>Verificar resposta<\/button>/);
   });
 }
 
-test("o botão do cristal em RA fica desabilitado e informa a indisponibilidade", async () => {
+test("a tela do cristal oferece um modelo interativo e explica a disponibilidade da RA", async () => {
   const { CristalRealidadeAumentada } = await server.ssrLoadModule(
     "/src/pages/CristalRealidadeAumentada/CristalRealidadeAumentada.tsx",
   );
   const markup = renderToStaticMarkup(createElement(CristalRealidadeAumentada, { onContinue() {} }));
-  const [, descriptionId] = markup.match(
-    /<button disabled="" aria-describedby="([^"]+)"[^>]*>.*?ABRIR O CRISTAL EM RA<\/button>/,
-  ) ?? [];
 
-  assert.ok(descriptionId);
-  assert.ok(markup.includes(`id="${descriptionId}" class="crystal-preview__availability">Experiência em RA ainda indisponível.`));
+  assert.match(markup, /A realidade aumentada ainda está indisponível/);
+  assert.match(markup, /Modelo original de CHClBrF/);
+  assert.match(markup, /type="range"/);
+  assert.match(markup, /Restaurar posição/);
 });
 
 test("o diagrama do ácido lático oferece um botão para cada carbono", async () => {
@@ -98,6 +85,8 @@ test("o certificado de conclusão usa o nome do aluno e apresenta as cinco conqu
   const phases = [...markup.matchAll(/<p>Fase (\d)<\/p>/g)].map(([, phase]) => phase);
   assert.deepEqual(phases, ["1", "2", "3", "4", "5"]);
   assert.match(markup, /1 de 1 respostas avaliadas corretas/);
+  assert.match(markup, /Imprimir ou salvar certificado em PDF/);
+  assert.match(markup, /Rever respostas e explicações/);
   assert.match(markup, /<footer class="page-footer"><button[^>]*>.*SAIR<\/button>/);
 });
 
@@ -128,8 +117,11 @@ test("o layout de atividade exibe cabeçalho, progresso e rodapé compartilhados
 
   assert.match(markup, /<main [^>]*data-node-id="2003:968"/);
   assert.match(markup, /<header class="page-header">/);
-  assert.match(markup, /<h1>Verificação Q.V3<\/h1>/);
-  assert.match(markup, /<progress [^>]*max="17" aria-label="Progresso da expedição"/);
+  assert.match(markup, /<h1>Por que os enantiômeros são diferentes\? · Q.V3<\/h1>/);
+  assert.match(markup, /<progress [^>]*max="18" aria-label="Progresso da expedição"/);
+  assert.match(markup, /Atividade 13 de 18/);
+  assert.match(markup, /Consultar caderno de campo/);
+  assert.match(markup, /aria-current="step"/);
   assert.match(markup, /<footer class="page-footer">Ação da atividade<\/footer>/);
 });
 
@@ -151,8 +143,8 @@ test("o login do professor pede e-mail e senha e exige configuração do serviç
   assert.match(markup, /<input [^>]*type="password"[^>]*autoComplete="current-password"/i);
   assert.match(markup, /<button disabled="" type="submit"[^>]*>Entrar<\/button>/);
   assert.match(markup, /Voltar à entrada do aluno/);
-  assert.match(markup, /value="register"[^>]*>Criar conta<\/button>/);
-  assert.match(markup, /value="recover"[^>]*formNoValidate=""[^>]*>Esqueci minha senha<\/button>/i);
+  assert.match(markup, /type="button"[^>]*>Criar conta<\/button>/);
+  assert.match(markup, /type="button"[^>]*>Esqueci minha senha<\/button>/i);
 });
 
 test("a tela de redefinição só oferece uma nova senha com link validado", async () => {
@@ -165,4 +157,5 @@ test("a tela de redefinição só oferece uma nova senha com link validado", asy
   assert.match(unavailable, /link de recuperação/);
   assert.match(available, /autoComplete="new-password"/i);
   assert.match(available, /Salvar nova senha/);
+  assert.match(available, /Use pelo menos/);
 });

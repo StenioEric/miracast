@@ -2,3 +2,19 @@
 .molecule { display: block; width: min(100%, 270px); margin-inline: auto; }
 .molecule text { font: 900 12px var(--body-font); text-anchor: middle; dominant-baseline: central; }
 .molecule-controls input { width: 100%; min-height: 36px; margin: 0; }
+
+.activity-models {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: var(--space-3);
+}
+
+.molecule-controls__hint {
+  color: var(--muted);
+  font-size: var(--font-small);
+}
+
+@media (max-width: 520px) {
+  .activity-models { grid-template-columns: 1fr; }
+}

@@ -10,7 +10,6 @@ export function VerificacaoQV1b({ onContinue }: { onContinue: (answer: Answer) =
     <ActivityLayout
       step="qv1b"
       frame="2003:2"
-      stage="Verificação · Ação Material Concreta"
       guidance="Compare o objeto com a imagem no espelho. Girar resolve o espelhamento?"
     >
       <ChoiceQuestion

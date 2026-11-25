@@ -10,7 +10,6 @@ export function VerificacaoQV1({ onContinue }: { onContinue: (answer: Answer) =>
     <ActivityLayout
       step="qv1"
       frame="2003:54"
-      stage="Verificação · Ação Material Concreta"
       guidance="Ao girar um objeto rígido, observe com atenção o que realmente mudou."
     >
       <ChoiceQuestion

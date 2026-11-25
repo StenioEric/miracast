@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useStudentDraft } from "../../components/StudentWork/studentWork";
 import type { FormEvent } from "react";
 
 import type { Answer } from "../../domain/expedition";
@@ -13,7 +13,7 @@ export function VerbalizePrincipio({
 }: {
   onContinue: (answer: Answer) => void;
 }) {
-  const [explanation, setExplanation] = useState("");
+  const [explanation, setExplanation] = useStudentDraft("explanation", "");
 
   function submitExplanation(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -25,10 +25,9 @@ export function VerbalizePrincipio({
     <ActivityLayout
       step="explain-chirality"
       frame="2003:1046"
-      stage="Princípio da quiralidade · Tela 15"
       guidance="Em uma frase: por que as duas moléculas não se sobrepõem?"
       footer={<PageFooter>
-        <Button form="resposta-quiralidade" type="submit" disabled={!explanation.trim()}>Continuar</Button>
+        <Button form="resposta-quiralidade" type="submit" disabled={!explanation.trim()}>Salvar resposta e continuar</Button>
       </PageFooter>}
     >
       <ContentCard as="form" id="resposta-quiralidade" onSubmit={submitExplanation}>

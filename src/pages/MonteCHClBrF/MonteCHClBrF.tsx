@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useStudentDraft } from "../../components/StudentWork/studentWork";
 
 import { questions } from "../../domain/questions";
 import type { Answer } from "../../domain/expedition";
@@ -18,8 +18,8 @@ export function MonteCHClBrF({
 }: {
   onContinue: (answer: Answer) => void;
 }) {
-  const [ligands, setLigands] = useState<Ligands>(["", "", "", ""]);
-  const [answered, setAnswered] = useState(false);
+  const [ligands, setLigands] = useStudentDraft<Ligands>("ligands", ["", "", "", ""]);
+  const [answered, setAnswered] = useStudentDraft("assembly-answered", false);
   const complete = ligands.every((ligand) => ligand !== "");
 
   function placeAtom(atom: Atom) {
@@ -50,7 +50,6 @@ export function MonteCHClBrF({
     <ActivityLayout
       step="build-molecule"
       frame={complete ? "2003:865" : "2003:914"}
-      stage={complete ? "Montagem concluída" : "Fase 1 · Monte o carbono quiral"}
       title={complete ? "Quatro átomos posicionados" : "Monte o CHClBrF"}
       guidance={complete
         ? "Muito bem! Agora os quatro ligantes estão ocupando as posições do carbono central."
@@ -115,7 +114,7 @@ export function MonteCHClBrF({
           </Button>
         )}
       </ContentCard>
-      {complete && <ChoiceQuestion question={questions["build-molecule"]} reviewOnSelect
+      {complete && <ChoiceQuestion question={questions["build-molecule"]}
         onEvaluate={() => setAnswered(true)} onContinue={continueActivity} />}
     </ActivityLayout>
   );

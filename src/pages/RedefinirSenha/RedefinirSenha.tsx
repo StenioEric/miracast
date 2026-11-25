@@ -1,3 +1,6 @@
+import { useState } from "react";
+import { passwordProblems } from "../../domain/passwordPolicy";
+import { PasswordField } from "../../components/PasswordField/PasswordField";
 import type { FormEvent } from "react";
 
 import { Button } from "../../components/Button/Button";
@@ -14,10 +17,21 @@ type RedefinirSenhaProps = {
 };
 
 export function RedefinirSenha({ available, pending, error, onBack, onReset }: RedefinirSenhaProps) {
+  const [passwordError, setPasswordError] = useState("");
+
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!available || pending) return;
-    onReset(String(new FormData(event.currentTarget).get("password")));
+    const password = String(new FormData(event.currentTarget).get("password"));
+    const missing = passwordProblems(password);
+    if (missing.length) {
+      setPasswordError(`A senha precisa de ${new Intl.ListFormat("pt-BR").format(missing)}.`);
+      const field = event.currentTarget.elements.namedItem("password");
+      if (field instanceof HTMLElement) field.focus();
+      return;
+    }
+    setPasswordError("");
+    onReset(password);
   }
 
   return (
@@ -25,10 +39,7 @@ export function RedefinirSenha({ available, pending, error, onBack, onReset }: R
       navigation={<Button variant="link" disabled={pending} onClick={onBack}>Voltar ao login</Button>}
     >
       {available ? <ContentCard as="form" method="post" onSubmit={submit}>
-        <label className="form-field">
-          Nova senha
-          <input className="form-control" type="password" name="password" autoComplete="new-password" required />
-        </label>
+        <PasswordField label="Nova senha" isNew error={passwordError} />
         {error && <p className="app-error" role="alert">{error}</p>}
         <Button type="submit" disabled={pending}>{pending ? "Salvando…" : "Salvar nova senha"}</Button>
       </ContentCard> : <ContentCard>

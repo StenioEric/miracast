@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { Button } from "../../components/Button/Button";
 import { ContentCard } from "../../components/ContentCard/ContentCard";
 import { PageFooter, PageHeader, PageLayout } from "../../components/PageLayout/PageLayout";
@@ -7,10 +8,12 @@ type WaitingRoomProps = {
   participantName: string;
   participantCount: number;
   roomCode: string;
+  roomName: string;
+  resume?: ReactNode;
   onBack: () => void;
 };
 
-export function WaitingRoom({ participantName, participantCount, roomCode, onBack }: WaitingRoomProps) {
+export function WaitingRoom({ participantName, participantCount, roomCode, roomName, resume, onBack }: WaitingRoomProps) {
   return (
     <PageLayout
       frame="13:1202"
@@ -20,11 +23,13 @@ export function WaitingRoom({ participantName, participantCount, roomCode, onBac
       </PageFooter>}
     >
       <ContentCard className="sala-espera__participacao" aria-labelledby="sala-espera-titulo">
-        <h2 id="sala-espera-titulo">Você está na sala!</h2>
+        <h2 id="sala-espera-titulo">Você está na turma {roomName}!</h2>
+        <p>A atividade vai abrir aqui assim que o professor iniciar a expedição.</p>
         <p className="sala-espera__codigo" aria-label={`Código da sala ${roomCode}`}>{roomCode}</p>
         <p><span aria-hidden="true">👤 </span>{participantName}</p>
         <p role="status">{participantCount} {participantCount === 1 ? "aluno inscrito" : "alunos inscritos"}</p>
       </ContentCard>
+      {resume && <ContentCard>{resume}</ContentCard>}
     </PageLayout>
   );
 }

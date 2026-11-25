@@ -3,9 +3,11 @@ import type { Participant } from "./rooms";
 
 export type TeacherClass = { code: string; name: string };
 export type ClassParticipant = Omit<Participant, "roomCode">;
+export type ExpeditionHistory = { id: string; started_at: string; ended_at: string };
 export type TeacherClassState = {
   room: TeacherClass;
-  started: boolean;
+  startedAt: string | null;
+  history: ExpeditionHistory[];
   participants: ClassParticipant[];
 };
 
@@ -23,16 +25,19 @@ export async function getTeacherClass(code: string): Promise<TeacherClassState |
   if (error) throw new Error("Não foi possível carregar a turma.");
   if (!data) return null;
 
-  const [expedition, participants] = await Promise.all([
+  const [expedition, participants, history] = await Promise.all([
     api.from("miracast_expeditions").select("started_at").eq("turma_id", data.id).maybeSingle(),
     api.from("miracast_enrollments").select("id:student_id, name, step, answers")
       .eq("turma_id", data.id).order("name").order("student_id"),
+    api.from("miracast_expedition_history").select("id, started_at, ended_at")
+      .eq("turma_id", data.id).order("ended_at", { ascending: false }),
   ]);
-  if (expedition.error || participants.error) throw new Error("Não foi possível acompanhar a expedição.");
+  if (expedition.error || participants.error || history.error) throw new Error("Não foi possível acompanhar a expedição.");
 
   return {
     room: { code: data.code, name: data.name },
-    started: Boolean(expedition.data),
+    startedAt: expedition.data?.started_at ?? null,
+    history: history.data,
     participants: participants.data as ClassParticipant[],
   };
 }
@@ -49,14 +54,17 @@ export async function renameTeacherClass(code: string, name: string) {
   if (error || !data) throw new Error("Não foi possível renomear a turma.");
 }
 
-export async function startTeacherExpedition(code: string) {
-  const api = client();
-  const { data, error } = await api.from("turmas").select("id").eq("codigo", code).maybeSingle();
-  if (error || !data) throw new Error("Não foi possível localizar a turma.");
+export async function manageTeacherExpedition(code: string, action: "start" | "end", startedAt?: string) {
+  const { error } = await client().rpc("miracast_manage_class", {
+    room_code: code, action, expected_start: startedAt ?? null,
+  });
+  if (error) throw new Error(action === "start"
+    ? "Não foi possível iniciar a expedição." : "Não foi possível encerrar a expedição.");
+}
 
-  const started = await api.from("miracast_expeditions").upsert(
-    { turma_id: data.id },
-    { onConflict: "turma_id", ignoreDuplicates: true },
-  );
-  if (started.error) throw new Error("Não foi possível iniciar a expedição.");
+export async function getArchivedParticipants(expeditionId: string): Promise<ClassParticipant[]> {
+  const { data, error } = await client().from("miracast_archived_enrollments")
+    .select("id:student_id, name, step, answers").eq("expedition_id", expeditionId).order("name").order("student_id");
+  if (error) throw new Error("Não foi possível carregar os resultados.");
+  return data as ClassParticipant[];
 }

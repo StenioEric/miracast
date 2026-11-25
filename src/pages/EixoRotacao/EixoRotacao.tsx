@@ -25,7 +25,6 @@ export function EixoRotacao({ onContinue }: { onContinue: (answer: Answer) => vo
     <ActivityLayout
       className="eixo-rotacao"
       step="axis-rotation"
-      stage="Ação Material Concreta · Tela 5"
       title="Missão 1.3 — O eixo de rotação"
       guidance="Gire a pirâmide em torno do eixo. Observe o que muda."
     >

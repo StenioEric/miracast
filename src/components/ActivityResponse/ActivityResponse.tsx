@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useRef } from "react";
 import type { ReactNode } from "react";
 
 import { evaluateQuestion } from "../../domain/questions";
@@ -9,6 +9,7 @@ import { ContentCard } from "../ContentCard/ContentCard";
 import { PageFooter } from "../PageLayout/PageLayout";
 import { AnswerFeedback } from "./AnswerFeedback";
 import { AnswerOption } from "./AnswerOption";
+import { useStudentDraft } from "../StudentWork/studentWork";
 import "./ActivityResponse.css";
 
 type IllustrationSelection = {
@@ -21,7 +22,6 @@ type ChoiceQuestionProps = {
   question: Question;
   onContinue: (answer: Answer) => void;
   onEvaluate?: (correct: boolean) => void;
-  reviewOnSelect?: boolean;
   illustration?: ReactNode | ((selection: IllustrationSelection) => ReactNode);
   incorrectContinueLabel?: string;
 };
@@ -30,19 +30,16 @@ export function ChoiceQuestion({
   question,
   onContinue,
   onEvaluate,
-  reviewOnSelect = false,
   illustration,
   incorrectContinueLabel = "Continuar",
 }: ChoiceQuestionProps) {
   const groupName = useId();
   const feedbackRef = useRef<HTMLDivElement>(null);
-  const [selected, setSelected] = useState<number | null>(null);
-  const [submitted, setSubmitted] = useState(false);
+  const [selected, setSelected] = useStudentDraft<number | null>("choice", null);
+  const [submitted, setSubmitted] = useStudentDraft("choice-submitted", false);
   const evaluated = selected === null ? undefined : evaluateQuestion(question, selected);
-  const needsConfirmation = !reviewOnSelect && !submitted;
   const feedback = submitted ? evaluated : undefined;
-  let actionLabel = feedback?.answer.correct === false ? incorrectContinueLabel : "Continuar";
-  if (needsConfirmation) actionLabel = "Verificar resposta";
+  const actionLabel = !submitted ? "Verificar resposta" : feedback?.answer.correct === false ? incorrectContinueLabel : "Continuar";
 
   useEffect(() => {
     if (submitted) feedbackRef.current?.focus();
@@ -54,16 +51,12 @@ export function ChoiceQuestion({
   }
 
   function selectOption(index: number) {
-    if (submitted) return;
-    const result = evaluateQuestion(question, index);
-    if (!result) return;
-    setSelected(index);
-    if (reviewOnSelect) submit(result.answer.correct);
+    if (!submitted && evaluateQuestion(question, index)) setSelected(index);
   }
 
   function handleAction() {
     if (!evaluated) return;
-    if (needsConfirmation) {
+    if (!submitted) {
       submit(evaluated.answer.correct);
     } else {
       onContinue(evaluated.answer);

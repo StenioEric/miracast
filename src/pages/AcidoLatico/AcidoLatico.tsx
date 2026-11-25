@@ -17,13 +17,11 @@ export function AcidoLatico({ onContinue }: { onContinue: (answer: Answer) => vo
   return (
     <ActivityLayout
       step="lactic-acid"
-      stage="Ação Mental Externa · Tela 16"
       title="MISSÃO 4.1 - ÁCIDO LÁTICO"
       guidance="Agora você está sozinho — sem o protocolo. Esta é a molécula do ácido lático, a mesma do iogurte que você come. Encontre o carbono quiral."
     >
       <ChoiceQuestion
         question={questions["lactic-acid"]}
-        reviewOnSelect
         onContinue={onContinue}
         illustration={({ selected, disabled, onSelect }) => (
           <figure className="lactic-acid">

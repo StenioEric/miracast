@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useStudentDraft } from "../../components/StudentWork/studentWork";
 
 import { questions } from "../../domain/questions";
 import type { Answer } from "../../domain/expedition";
@@ -18,15 +18,14 @@ export function SeRepetir({
 }: {
   onContinue: (answer: Answer) => void;
 }) {
-  const [replaced, setReplaced] = useState(false);
-  const [answered, setAnswered] = useState(false);
+  const [replaced, setReplaced] = useStudentDraft("substitution", false);
+  const [answered, setAnswered] = useStudentDraft("substitution-answered", false);
   const ligands = replaced ? replacedLigands : chclbrf;
 
   return (
     <ActivityLayout
       step="repeat-ligand"
       frame="2003:798"
-      stage="Ação Material Concreta · Tela 10"
       title={replaced ? "A repetição muda tudo" : "E se repetir?"}
       guidance={replaced
         ? "Agora substituímos F por H. O que aconteceu com os ligantes do carbono?"
@@ -69,7 +68,7 @@ export function SeRepetir({
         )}
       </ContentCard>
 
-      {replaced && <ChoiceQuestion question={questions["repeat-ligand"]} reviewOnSelect
+      {replaced && <ChoiceQuestion question={questions["repeat-ligand"]}
         onEvaluate={() => setAnswered(true)} onContinue={onContinue} />}
     </ActivityLayout>
   );

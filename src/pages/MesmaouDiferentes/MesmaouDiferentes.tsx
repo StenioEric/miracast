@@ -9,13 +9,11 @@ export function MesmaOuDiferentes({ onContinue }: { onContinue: (answer: Answer)
   return (
     <ActivityLayout
       step="compare-forms"
-      stage="Ação Mental Externa · Tela 17"
       title="MISSÃO 4.2 MESMA OU DIFERENTES?"
       guidance="Os dois enantiômeros do ácido lático, lado a lado. São a mesma substância ou substâncias diferentes?"
     >
       <ChoiceQuestion
         question={questions["compare-forms"]}
-        reviewOnSelect
         onContinue={onContinue}
         illustration={
           <img

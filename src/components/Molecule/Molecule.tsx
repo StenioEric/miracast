@@ -2,12 +2,20 @@ import { useState } from "react";
 
 import { projectPoint } from "../../utils/moleculeGeometry";
 import type { Ligands } from "../../utils/moleculeGeometry";
+import { Button } from "../Button/Button";
 import "./Molecule.css";
+
+const initialYaw = 25;
+const initialPitch = 15;
+const ligandNames: Record<string, string> = {
+  H: "hidrogênio (H)", Cl: "cloro (Cl)", Br: "bromo (Br)", F: "flúor (F)",
+  OH: "hidroxila (OH)", "CH₃": "metila (CH₃)", COOH: "carboxila (COOH)",
+};
 
 const vertices = [[1, 1, 1], [1, -1, -1], [-1, 1, -1], [-1, -1, 1]] as const;
 const colors: Record<string, string> = { H: "#edf2f5", Cl: "#90e098", Br: "#f7a66d", F: "#b9e9ff", OH: "#f7a7ba", "CH₃": "#bedaef", COOH: "#ffd475" };
 
-export function Molecule({ ligands, yaw = 25, pitch = 15, mirror = false, label, overlay }: {
+export function Molecule({ ligands, yaw = initialYaw, pitch = initialPitch, mirror = false, label, overlay }: {
   ligands: Ligands; yaw?: number; pitch?: number; mirror?: boolean; label: string; overlay?: boolean;
 }) {
   function joints(reflected: boolean, angle: number, tilt: number) {
@@ -18,11 +26,12 @@ export function Molecule({ ligands, yaw = 25, pitch = 15, mirror = false, label,
   }
 
   const positions = joints(mirror, yaw, pitch);
+  const description = ligands.map((ligand, index) => ligand ? ligandNames[ligand] ?? ligand : `posição ${index + 1} vazia`);
 
   return (
-    <svg className="molecule" viewBox="0 0 240 212" role="img" aria-label={label}>
+    <svg className="molecule" viewBox="0 0 240 212" role="img" aria-label={`${label}. Carbono central. Ligantes e posições: ${description.join(", ")}.`}>
       {overlay && <g opacity=".25">
-        {joints(false, 25, 15).map(({ index, x, y }) => <g key={index}>
+        {joints(false, initialYaw, initialPitch).map(({ index, x, y }) => <g key={index}>
           <line x1={120} y1={106} x2={x} y2={y} stroke="#282c29" strokeWidth={4} />
           <circle cx={x} cy={y} r={19} fill={colors[ligands[index]]} stroke="#282c29" strokeWidth={2} />
         </g>)}
@@ -48,13 +57,20 @@ export function Molecule({ ligands, yaw = 25, pitch = 15, mirror = false, label,
 export function RotatableMolecule({ ligands, mirror, label, overlay }: {
   ligands: Ligands; mirror?: boolean; label: string; overlay?: boolean;
 }) {
-  const [yaw, setYaw] = useState(25);
-  const [pitch, setPitch] = useState(15);
+  const [yaw, setYaw] = useState(initialYaw);
+  const [pitch, setPitch] = useState(initialPitch);
   return (
     <div className="molecule-controls">
       <Molecule ligands={ligands} yaw={yaw} pitch={pitch} mirror={mirror} label={label} overlay={overlay} />
+      <p className="molecule-controls__hint">Toque ou arraste os controles. Pelo teclado, use as setas.</p>
       <label>Rotação horizontal <input type="range" min={-180} max={180} value={yaw} onChange={(event) => setYaw(Number(event.target.value))} /></label>
       <label>Inclinação <input type="range" min={-90} max={90} value={pitch} onChange={(event) => setPitch(Number(event.target.value))} /></label>
+      <Button variant="secondary" onClick={() => { setYaw(initialYaw); setPitch(initialPitch); }}>Restaurar posição</Button>
+      <details>
+        <summary>Descrição da molécula</summary>
+        <p>Carbono central ligado a {new Intl.ListFormat("pt-BR").format(ligands.map((item) => ligandNames[item] ?? item))}.</p>
+        <p>Ligações tracejadas indicam ligantes atrás do carbono nesta posição.</p>
+      </details>
     </div>
   );
 }

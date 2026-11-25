@@ -9,7 +9,6 @@ export function VerificacaoQV3({ onContinue }: { onContinue: (answer: Answer) =>
     <ActivityLayout
       step="qv3"
       frame="2003:968"
-      stage="Verificação · Tela 13"
       guidance="Quatro estudantes explicaram por que o CHClBrF e seu enantiômero não são a mesma molécula. Qual explicação está conceitualmente correta?"
     >
       <ChoiceQuestion

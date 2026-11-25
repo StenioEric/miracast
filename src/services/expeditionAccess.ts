@@ -46,11 +46,11 @@ export type StudentState = {
   participant: Participant;
   participantCount: number;
   legacy?: boolean;
+  ended?: boolean;
 };
 
-export async function joinExpedition(code: string, name: string) {
+async function establishStudentSession() {
   const api = client();
-  const roomCode = normalizeRoomCode(code);
   const { data, error } = await api.auth.getSession();
   if (error) throw new Error("Não foi possível iniciar a sessão do aluno.");
   if (data.session && !data.session.user.is_anonymous) {
@@ -63,6 +63,12 @@ export async function joinExpedition(code: string, name: string) {
     }
     if (error) throw new Error("Não foi possível iniciar a sessão do aluno.");
   }
+  return api;
+}
+
+export async function joinExpedition(code: string, name: string) {
+  const api = await establishStudentSession();
+  const roomCode = normalizeRoomCode(code);
   const legacy = roomCode.length === 6;
   const result = await api.rpc(legacy ? "miracast_join_room" : "miracast_join_class", {
     room_code: roomCode,
@@ -76,6 +82,18 @@ export async function joinExpedition(code: string, name: string) {
     }
     throw new Error(result.error.code === "P0001" ? result.error.message : "Não foi possível entrar na sala.");
   }
+}
+
+export async function issueClassResumeCode() {
+  const { data, error } = await client().rpc("miracast_issue_class_resume_code");
+  if (error || typeof data !== "string") throw new Error("Não foi possível gerar o código de retomada. Tente novamente.");
+  return data;
+}
+
+export async function resumeClass(code: string) {
+  const api = await establishStudentSession();
+  const { error } = await api.rpc("miracast_resume_class", { personal_code: code.trim() });
+  if (error) throw new Error(error.code === "P0001" ? error.message : "Não foi possível retomar a expedição. Tente novamente.");
 }
 
 export async function getStudentState(): Promise<StudentState | null> {

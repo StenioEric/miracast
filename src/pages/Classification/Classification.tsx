@@ -1,4 +1,5 @@
-import { useRef, useState } from "react";
+import { useStudentDraft } from "../../components/StudentWork/studentWork";
+import { useRef } from "react";
 
 import tabelaClassificacao from "../../assets/tabela_tela3.svg";
 import { ActivityLayout } from "../../components/ActivityLayout/ActivityLayout";
@@ -16,8 +17,8 @@ type ObjectId = (typeof classificationItems)[number]["id"];
 
 export function Classification({ onContinue }: { onContinue: (answer: Answer) => void }) {
   const feedbackRef = useRef<HTMLDivElement>(null);
-  const [answers, setAnswers] = useState<Partial<Record<ObjectId, Category>>>({});
-  const [submitted, setSubmitted] = useState(false);
+  const [answers, setAnswers] = useStudentDraft<Partial<Record<ObjectId, Category>>>("classification", {});
+  const [submitted, setSubmitted] = useStudentDraft("classification-submitted", false);
   const assessment = evaluateClassification(answers);
   const feedback = submitted ? assessment : undefined;
 
@@ -40,7 +41,6 @@ export function Classification({ onContinue }: { onContinue: (answer: Answer) =>
     <ActivityLayout
       step="classification"
       frame="13:1307"
-      stage="Ação Material Concreta · Tela 3"
       title="Missão 1.1 — Plano ou espacial?"
       guidance="Classifique cada representação como plana ou espacial. Considere a folha como uma superfície ideal, sem espessura."
       footer={<PageFooter>
