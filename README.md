@@ -34,7 +34,7 @@ A [migração de demonstração](supabase/migrations/20261122000000_professor_ac
 
 ## Entrada dos alunos por código
 
-A [migração de expedições por turma](supabase/migrations/20261123025101_vincula_alunos_as_turmas.sql) acrescenta o estado de início e o registro de participações e respostas vinculados a `turmas.id`. Em seguida, aplique a [migração de histórico](supabase/migrations/20261125215239_expedition_history.sql) no projeto que atende à aplicação web. O projeto deve permitir **Anonymous Users** em **Authentication → Sign In / Providers**. Assim o Supabase cria uma sessão para o aluno, que informa apenas nome e código. [Sessões anônimas do Supabase](https://supabase.com/docs/guides/auth/auth-anonymous)
+A [migração de expedições por turma](supabase/migrations/20261123025101_vincula_alunos_as_turmas.sql) acrescenta o estado de início e o registro de participações e respostas vinculados a `turmas.id`. Em seguida, aplique a [migração de histórico](supabase/migrations/20261125232124_expedition_history.sql) no projeto que atende à aplicação web. O projeto deve permitir **Anonymous Users** em **Authentication → Sign In / Providers**. Assim o Supabase cria uma sessão para o aluno, que informa apenas nome e código. [Sessões anônimas do Supabase](https://supabase.com/docs/guides/auth/auth-anonymous)
 
 1. O professor abre uma turma e compartilha o código de dez caracteres ou o link de convite, que preenche o código para o aluno.
 2. Cada aluno informa o nome e o código e aguarda na sala de espera.
