@@ -27,12 +27,12 @@ export type ExpeditionStep = (typeof expeditionSteps)[number];
 export type Answer = { value: string; correct?: boolean };
 
 export const expeditionPhases = [
-  { first: "classification", title: "Orientação espacial", objective: "Observe o que muda quando um objeto gira ou aparece no espelho.", guided: true },
-  { first: "build-molecule", title: "Carbono tetraédrico", objective: "Monte uma molécula e descubra o que acontece quando dois ligantes são iguais.", guided: true },
-  { first: "superposition", title: "Imagens no espelho", objective: "Compare duas formas no espelho e explique por que elas não se sobrepõem.", guided: true },
-  { first: "lactic-acid", title: "Quiralidade em outra molécula", objective: "Use o que aprendeu para identificar a quiralidade no ácido lático.", guided: false },
-  { first: "augmented-reality", title: "As duas formas do cristal", objective: "Reúna suas descobertas para explicar o efeito das duas formas na luz.", guided: false },
-] as const satisfies readonly { first: ExpeditionStep; title: string; objective: string; guided: boolean }[];
+  { first: "classification", title: "Orientação espacial", objective: "Observe o que muda quando um objeto gira ou aparece no espelho." },
+  { first: "build-molecule", title: "Carbono tetraédrico", objective: "Monte uma molécula e descubra o que acontece quando dois ligantes são iguais." },
+  { first: "superposition", title: "Imagens no espelho", objective: "Compare duas formas no espelho e explique por que elas não se sobrepõem." },
+  { first: "lactic-acid", title: "Quiralidade em outra molécula", objective: "Use o que aprendeu para identificar a quiralidade no ácido lático." },
+  { first: "augmented-reality", title: "As duas formas do cristal", objective: "Reúna suas descobertas para explicar o efeito das duas formas na luz." },
+] as const satisfies readonly { first: ExpeditionStep; title: string; objective: string }[];
 
 export function stepTitle(step: ExpeditionStep) {
   if (step === "motivation") return "Motivação";

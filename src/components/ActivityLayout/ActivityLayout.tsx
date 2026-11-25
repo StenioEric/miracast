@@ -2,7 +2,6 @@ import { useContext } from "react";
 import type { ReactNode } from "react";
 
 import { activities, activityProgress, expeditionPhases, phaseIndex } from "../../domain/expedition";
-import { fieldNotebookQuestions } from "../../domain/fieldNotebook";
 import type { ExpeditionStep } from "../../domain/expedition";
 import { DraMiraAvatar } from "../DraMiraAvatar/DraMiraAvatar";
 import { PageHeader, PageLayout } from "../PageLayout/PageLayout";
@@ -51,20 +50,6 @@ export function ActivityLayout({
       footer={footer}
     >
       <div className="activity-tools">
-        <details>
-          <summary>Ver percurso</summary>
-          <ol>
-            {expeditionPhases.map(({ title }, index) => (
-              <li key={title} aria-current={index === phaseNumber ? "step" : undefined}>
-                <strong>{title}</strong> · {index < phaseNumber ? "Concluída" : index === phaseNumber ? "Você está aqui" : "A seguir"}
-              </li>
-            ))}
-          </ol>
-        </details>
-        {phase?.guided && <details>
-          <summary>Consultar caderno de campo</summary>
-          <ol>{fieldNotebookQuestions.map((question) => <li key={question}>{question}</li>)}</ol>
-        </details>}
         {resume}
       </div>
       {phase?.first === step && <p className="activity-objective">{phase.objective}</p>}

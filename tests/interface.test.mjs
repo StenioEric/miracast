@@ -120,8 +120,7 @@ test("o layout de atividade exibe cabeçalho, progresso e rodapé compartilhados
   assert.match(markup, /<h1>Por que os enantiômeros são diferentes\? · Q.V3<\/h1>/);
   assert.match(markup, /<progress [^>]*max="18" aria-label="Progresso da expedição"/);
   assert.match(markup, /Atividade 13 de 18/);
-  assert.match(markup, /Consultar caderno de campo/);
-  assert.match(markup, /aria-current="step"/);
+  assert.match(markup, /Fase 3 · Imagens no espelho/);
   assert.match(markup, /<footer class="page-footer">Ação da atividade<\/footer>/);
 });
 

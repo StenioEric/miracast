@@ -208,10 +208,11 @@ test("professor e aluno completam a expedição com reconexão, retomada e hist�
 
   await button(teacher, "Iniciar expedição").click();
   await button(student, "Aceitar a expedição").click();
+  await wait(text(student, "Girar o objeto muda sua identidade ou apenas o ângulo de observação?"));
   await button(student, "Iniciar fase 1").click();
   await wait(text(student, "Atividade 1 de 18"));
-  await text(student, "Ver percurso").click();
-  await wait(student.locator("[aria-current=step]").filter({ hasText: "Você está aqui" }));
+  assert.equal(await text(student, "Ver percurso").count(), 0);
+  assert.equal(await text(student, "Consultar caderno de campo").count(), 0);
   for (const fieldset of await student.locator("fieldset").all()) await fieldset.getByRole("radio").first().check();
   await button(student, "Classificar todos").click();
   await button(student, "Continuar").click();
@@ -219,8 +220,6 @@ test("professor e aluno completam a expedição com reconexão, retomada e hist�
   await wait(text(student, "Atividade 2 de 18"));
   const explanation = "O cubo continua sendo o mesmo objeto depois de girar.";
   await student.locator("textarea").fill(explanation);
-  await text(student, "Consultar caderno de campo").click();
-  await wait(text(student, "Girar o objeto muda sua identidade ou apenas o ângulo de observação?"));
   api.failReads(true);
   await wait(text(student, "Conexão temporariamente indisponível. O que você digitou continua nesta tela."));
   assert.equal(await student.locator("textarea").inputValue(), explanation);
@@ -263,7 +262,6 @@ test("professor e aluno completam a expedição com reconexão, retomada e hist�
       await button(student, "Salvar resposta e continuar").click();
       continue;
     }
-    if (step === "lactic-acid") assert.equal(await text(student, "Consultar caderno de campo").count(), 0);
     if (step === "augmented-reality") {
       assert.equal(await student.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
       const rotation = student.getByRole("slider").first();

@@ -72,15 +72,6 @@
   font-weight: 700;
 }
 
-.activity-tools ol {
-  margin-block: var(--space-2);
-  padding-inline-start: 1.5rem;
-}
-
-.activity-tools li + li {
-  margin-block-start: var(--space-2);
-}
-
 .activity-objective {
   padding-inline-start: var(--space-3);
   border-inline-start: .25rem solid var(--purple);
