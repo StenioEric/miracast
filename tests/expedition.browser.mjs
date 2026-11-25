@@ -18,6 +18,7 @@ function classroomApi() {
   let readsFail = false;
   let writesFail = false;
   let registrations = 0;
+  let historyEnabled = false;
 
   async function respond(route) {
     const request = route.request();
@@ -60,10 +61,16 @@ function classroomApi() {
         }
         return send(roomCreated ? [room] : []);
       case "/rest/v1/miracast_expeditions":
+        if (method === "POST") {
+          assert.equal(body.turma_id, room.id);
+          startedAt ??= new Date().toISOString();
+          return send(null, 201);
+        }
         return send(startedAt ? [{ started_at: startedAt }] : []);
       case "/rest/v1/miracast_enrollments":
         return send(participant ? [participant] : []);
       case "/rest/v1/miracast_expedition_history":
+        if (!historyEnabled) return send({ code: "PGRST205", message: "Tabela ausente" }, 404);
         return send(history.map(({ expedition }) => expedition));
       case "/rest/v1/miracast_archived_enrollments":
         return send(history[0]?.participants ?? []);
@@ -90,6 +97,7 @@ function classroomApi() {
         }
         return send(null);
       case "/rest/v1/rpc/miracast_manage_class":
+        if (!historyEnabled) return send({ code: "PGRST202", message: "Função ausente" }, 404);
         if (body.action === "start") startedAt = new Date().toISOString();
         if (body.action === "end") {
           assert.equal(body.expected_start, startedAt);
@@ -109,6 +117,7 @@ function classroomApi() {
   return {
     respond,
     get registrations() { return registrations; },
+    enableHistory() { historyEnabled = true; },
     failReads(value) { readsFail = value; },
     failWrites(value) { writesFail = value; },
   };
@@ -119,7 +128,7 @@ const text = (page, value) => page.getByText(value, { exact: true });
 const heading = (page, name) => page.getByRole("heading", { name, exact: true });
 const wait = (locator) => locator.waitFor({ state: "visible" });
 
-test("professor e aluno completam a expedição com reconexão e histórico", { timeout: 90_000 }, async (t) => {
+test("a turma funciona antes da migração de histórico e conclui a expedição após a atualização", { timeout: 90_000 }, async (t) => {
   process.env.VITE_SUPABASE_URL = databaseHost;
   process.env.VITE_SUPABASE_PUBLISHABLE_KEY = "sb_publishable_browser_test";
   process.env.VITE_PASSWORD_MIN_LENGTH = "8";
@@ -181,12 +190,14 @@ test("professor e aluno completam a expedição com reconexão e histórico", { 
   await button(teacher, "Criar nova turma").click();
   await teacher.getByLabel("Nome da turma").fill("Estereoquímica A");
   await button(teacher, "Criar turma").click();
+  await wait(heading(teacher, "Turma criada"));
   await button(teacher, "Copiar link de convite").click();
   await wait(text(teacher, "Copiado."));
   const invite = await teacher.evaluate(() => window.lastClipboardCopy);
   assert.ok(invite.startsWith(site));
   assert.equal(new URL(invite).searchParams.get("turma"), "A1B2C3D4E5");
   await button(teacher, "Acessar turma").click();
+  await wait(text(teacher, "O histórico das expedições estará disponível após a atualização do banco."));
 
   const student = await pageInNewContext();
   await student.goto(invite);
@@ -275,6 +286,8 @@ test("professor e aluno completam a expedição com reconexão e histórico", { 
   await wait(text(teacher.getByRole("listitem"), "Concluiu"));
   await teacher.getByLabel("Filtrar por situação").selectOption("complete");
   await wait(heading(teacher, "Maria da Silva"));
+  assert.equal(await button(teacher, "Encerrar expedição").count(), 0);
+  api.enableHistory();
   await button(teacher, "Encerrar expedição").click();
   await button(teacher, "Confirmar encerramento").click();
   await wait(heading(teacher, "Expedições anteriores"));

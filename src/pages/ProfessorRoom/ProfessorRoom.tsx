@@ -48,7 +48,8 @@ function ArchivedResults({ expedition }: { expedition: ExpeditionHistory }) {
 }
 
 export function ProfessorRoom({
-  room, startedAt, participants, history, created, pending, status, onViewRoom, onRename, onStart, onEnd, onBackToDashboard,
+  room, startedAt, participants, history, historyError, created, pending, status,
+  onViewRoom, onRename, onStart, onEnd, onBackToDashboard,
 }: ProfessorRoomProps) {
   const [editionToEnd, setEditionToEnd] = useState<string | null>(null);
   const confirmEnd = startedAt !== null && startedAt === editionToEnd;
@@ -85,10 +86,10 @@ export function ProfessorRoom({
           {!startedAt && <Button disabled={pending} onClick={onStart}>
             {history.length ? "Iniciar nova expedição" : "Iniciar expedição"}
           </Button>}
-          {startedAt && !confirmEnd && <Button variant="secondary" disabled={pending} onClick={() => setEditionToEnd(startedAt)}>
+          {startedAt && !historyError && !confirmEnd && <Button variant="secondary" disabled={pending} onClick={() => setEditionToEnd(startedAt)}>
             Encerrar expedição
           </Button>}
-          {startedAt && confirmEnd && <div className="professor__end">
+          {startedAt && !historyError && confirmEnd && <div className="professor__end">
             <p>Encerrar salva os resultados no histórico e impede novos envios nesta expedição.</p>
             <div className="professor__actions">
               <Button disabled={pending} onClick={() => onEnd(startedAt)}>Confirmar encerramento</Button>
@@ -110,6 +111,7 @@ export function ProfessorRoom({
           <h2>Alunos e progresso</h2>
           <TeacherResults key={startedAt ?? "waiting"} participants={participants} started={Boolean(startedAt)} />
         </ContentCard>
+        {historyError && <ContentCard><p role="status">{historyError}</p></ContentCard>}
         {history.length > 0 && <ContentCard>
           <h2>Expedições anteriores</h2>
           <label className="form-field">Selecione uma expedição
