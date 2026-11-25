@@ -39,7 +39,9 @@ A [migração de expedições por turma](supabase/migrations/20261123025101_vinc
 1. O professor abre uma turma e compartilha o código de dez caracteres ou o link de convite, que preenche o código para o aluno.
 2. Cada aluno informa o nome e o código e aguarda na sala de espera.
 3. O professor seleciona **Iniciar expedição**. A sala de espera e a lista de alunos são atualizadas automaticamente.
-4. À medida que o aluno avança, o professor vê as etapas, as respostas e os itens com mais erros em **Alunos e progresso**. Em **Encerrar expedição**, grave os resultados no histórico. A turma volta à sala de espera para uma nova aplicação.
+4. À medida que o aluno avança, o professor vê as etapas, as respostas e os itens com mais erros em **Alunos e progresso**. Em **Encerrar expedição**, o código da turma fica fechado para novos ingressos e envios. Os resultados ficam em **Expedições anteriores**.
+5. Para repetir a atividade, use **Criar nova turma** e compartilhe o novo código.
+6. Em **Expedições anteriores**, selecione uma expedição e use **Excluir expedição**. Após confirmar, a expedição, as participações e as respostas dela são excluídas do banco. A turma permanece encerrada com seu código desativado.
 
 O código permite entrar na expedição. O aluno recebe só sua participação, o estado da turma e a contagem de inscritos. Ao recarregar a mesma aba, a sessão e o rascunho continuam disponíveis. O acesso do professor aos resultados segue a propriedade da turma no banco. Os códigos de seis caracteres e as participações do esquema anterior continuam funcionando onde o serviço antigo está instalado. A associação de dados históricos a turmas exige uma correspondência confirmada entre os registros.
 
@@ -63,7 +65,7 @@ O build inclui a checagem de tipos. Os testes cobrem a sequência de frames, val
 
 Para executar a jornada do professor e do aluno no navegador, instale o Chromium uma vez com `npx playwright-core install chromium` e rode `npm run test:browser`. Também é possível definir `MIRACAST_CHROMIUM` com o caminho de um Chrome já instalado. O teste simula o Supabase, incluindo falhas de leitura e envio, e roda com dados fictícios.
 
-O [teste de histórico](supabase/tests/expedition_history.sql) verifica o encerramento das expedições e o isolamento dos resultados entre professores. O [teste da expedição por turma](supabase/tests/class_expeditions.sql) verifica a entrada por código, o bloqueio antes do início, o avanço e o isolamento entre turmas em uma base de teste. Para o esquema anterior, o [teste de isolamento](supabase/tests/professor_access.sql) executa as políticas para duas contas de professor, dois alunos e uma conta sem autorização. Execute o SQL em uma base de teste com a migração aplicada. Os registros criados pelo teste são revertidos ao final.
+O [teste de histórico](supabase/tests/expedition_history.sql) verifica o encerramento, a exclusão dos resultados e o isolamento entre professores. O [teste da expedição por turma](supabase/tests/class_expeditions.sql) verifica a entrada por código, o bloqueio antes do início, o avanço e o isolamento entre turmas em uma base de teste. Para o esquema anterior, o [teste de isolamento](supabase/tests/professor_access.sql) executa as políticas para duas contas de professor, dois alunos e uma conta sem autorização. Execute o SQL em uma base de teste com as migrações aplicadas. Os registros criados pelo teste são revertidos ao final.
 
 ## Pendências
 
