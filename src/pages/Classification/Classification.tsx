@@ -22,8 +22,8 @@ export function Classification({ onContinue }: { onContinue: (answer: Answer) =>
   const feedback = submitted ? assessment : undefined;
 
   function chooseCategory(objectId: ObjectId, category: Category) {
+    if (submitted) return;
     setAnswers((current) => ({ ...current, [objectId]: category }));
-    setSubmitted(false);
   }
 
   function handleAction() {
@@ -53,7 +53,7 @@ export function Classification({ onContinue }: { onContinue: (answer: Answer) =>
         alt="Galeria com folha, círculo, cubo, pirâmide e esfera." width="367" height="171" />
       {classificationItems.map(({ id, name, category }) => (
         <ContentCard key={id} aria-label={`Classificação de ${name}`}>
-          <fieldset className="activity-options classificacao__categorias">
+          <fieldset className="activity-options classificacao__categorias" disabled={submitted}>
             <legend>{name}</legend>
             {(["plano", "espacial"] as const).map((option) => (
               <AnswerOption key={option} name={id} label={option} selected={answers[id] === option}

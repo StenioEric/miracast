@@ -24,7 +24,7 @@ export function TenteSobrepor({ onContinue }: { onContinue: (answer: Answer) => 
           </div>
           <label><input type="checkbox" checked={overlay} onChange={(event) => setOverlay(event.target.checked)} /> Mostrar a referência no mesmo diagrama</label>
         </ContentCard>
-        <ChoiceQuestion requireCorrect onEvaluate={setChecked} onContinue={onContinue} question={questions["superposition"]} />
+        <ChoiceQuestion onEvaluate={setChecked} onContinue={onContinue} question={questions["superposition"]} />
       </div>
     </ActivityLayout>
   );

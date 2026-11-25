@@ -19,6 +19,7 @@ export function SeRepetir({
   onContinue: (answer: Answer) => void;
 }) {
   const [replaced, setReplaced] = useState(false);
+  const [answered, setAnswered] = useState(false);
   const ligands = replaced ? replacedLigands : chclbrf;
 
   return (
@@ -62,13 +63,14 @@ export function SeRepetir({
             Substituir F por H
           </Button>
         ) : (
-          <Button variant="secondary" onClick={() => setReplaced(false)}>
+          <Button variant="secondary" disabled={answered} onClick={() => setReplaced(false)}>
             Voltar para CHClBrF
           </Button>
         )}
       </ContentCard>
 
-      {replaced && <ChoiceQuestion question={questions["repeat-ligand"]} reviewOnSelect onContinue={onContinue} />}
+      {replaced && <ChoiceQuestion question={questions["repeat-ligand"]} reviewOnSelect
+        onEvaluate={() => setAnswered(true)} onContinue={onContinue} />}
     </ActivityLayout>
   );
 }

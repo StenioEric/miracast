@@ -1,4 +1,4 @@
-import { useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import type { ReactNode } from "react";
 
 import { evaluateQuestion } from "../../domain/questions";
@@ -21,7 +21,6 @@ type ChoiceQuestionProps = {
   question: Question;
   onContinue: (answer: Answer) => void;
   onEvaluate?: (correct: boolean) => void;
-  requireCorrect?: boolean;
   reviewOnSelect?: boolean;
   illustration?: ReactNode | ((selection: IllustrationSelection) => ReactNode);
   incorrectContinueLabel?: string;
@@ -31,34 +30,41 @@ export function ChoiceQuestion({
   question,
   onContinue,
   onEvaluate,
-  requireCorrect = false,
   reviewOnSelect = false,
   illustration,
   incorrectContinueLabel = "Continuar",
 }: ChoiceQuestionProps) {
   const groupName = useId();
-  const optionsRef = useRef<HTMLFieldSetElement>(null);
   const feedbackRef = useRef<HTMLDivElement>(null);
   const [selected, setSelected] = useState<number | null>(null);
   const [submitted, setSubmitted] = useState(false);
   const evaluated = selected === null ? undefined : evaluateQuestion(question, selected);
   const needsConfirmation = !reviewOnSelect && !submitted;
-  const feedback = needsConfirmation ? undefined : evaluated;
-  const retry = feedback?.answer.correct === false && requireCorrect;
+  const feedback = submitted ? evaluated : undefined;
   let actionLabel = feedback?.answer.correct === false ? incorrectContinueLabel : "Continuar";
   if (needsConfirmation) actionLabel = "Verificar resposta";
-  if (retry) actionLabel = "Tentar novamente";
+
+  useEffect(() => {
+    if (submitted) feedbackRef.current?.focus();
+  }, [submitted]);
+
+  function submit(correct: boolean) {
+    setSubmitted(true);
+    onEvaluate?.(correct);
+  }
+
+  function selectOption(index: number) {
+    if (submitted) return;
+    const result = evaluateQuestion(question, index);
+    if (!result) return;
+    setSelected(index);
+    if (reviewOnSelect) submit(result.answer.correct);
+  }
 
   function handleAction() {
     if (!evaluated) return;
     if (needsConfirmation) {
-      setSubmitted(true);
-      onEvaluate?.(evaluated.answer.correct);
-      requestAnimationFrame(() => feedbackRef.current?.focus());
-    } else if (retry) {
-      setSelected(null);
-      setSubmitted(false);
-      requestAnimationFrame(() => optionsRef.current?.querySelector("input")?.focus());
+      submit(evaluated.answer.correct);
     } else {
       onContinue(evaluated.answer);
     }
@@ -68,13 +74,13 @@ export function ChoiceQuestion({
     <div className="choice-question">
       <ContentCard>
         {typeof illustration === "function"
-          ? illustration({ selected, disabled: submitted, onSelect: setSelected })
+          ? illustration({ selected, disabled: submitted, onSelect: selectOption })
           : illustration}
-        <fieldset ref={optionsRef} className="activity-options" disabled={submitted}>
+        <fieldset className="activity-options" disabled={submitted}>
           <legend>{question.prompt}</legend>
           {question.options.map((option, index) => (
             <AnswerOption key={option.value} name={groupName} label={option.label ?? option.value}
-              selected={selected === index} correct={feedback?.answer.correct} onSelect={() => setSelected(index)} />
+              selected={selected === index} correct={feedback?.answer.correct} onSelect={() => selectOption(index)} />
           ))}
         </fieldset>
         <AnswerFeedback ref={feedbackRef} correct={feedback?.answer.correct}>

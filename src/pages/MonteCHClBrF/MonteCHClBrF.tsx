@@ -19,6 +19,7 @@ export function MonteCHClBrF({
   onContinue: (answer: Answer) => void;
 }) {
   const [ligands, setLigands] = useState<Ligands>(["", "", "", ""]);
+  const [answered, setAnswered] = useState(false);
   const complete = ligands.every((ligand) => ligand !== "");
 
   function placeAtom(atom: Atom) {
@@ -71,7 +72,7 @@ export function MonteCHClBrF({
               type="button"
               className={ligand ? "monte-chclbrf__posicao monte-chclbrf__posicao--preenchida" : "monte-chclbrf__posicao"}
               key={index}
-              disabled={!ligand}
+              disabled={!ligand || answered}
               onClick={() => removeAtom(index)}
               aria-label={ligand ? `Remover átomo ${ligand} da posição ${index + 1}` : `Posição ${index + 1} vazia`}
             >
@@ -114,7 +115,8 @@ export function MonteCHClBrF({
           </Button>
         )}
       </ContentCard>
-      {complete && <ChoiceQuestion question={questions["build-molecule"]} reviewOnSelect onContinue={continueActivity} />}
+      {complete && <ChoiceQuestion question={questions["build-molecule"]} reviewOnSelect
+        onEvaluate={() => setAnswered(true)} onContinue={continueActivity} />}
     </ActivityLayout>
   );
 }
