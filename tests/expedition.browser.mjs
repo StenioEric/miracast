@@ -12,8 +12,10 @@ function classroomApi() {
   const users = new Map();
   const history = [];
   const room = { id: randomUUID(), code: "A1B2C3D4E5", name: "Estereoquímica A" };
-  let roomCreated = false;
-  let startedAt = null;
+  const nextRoom = { id: randomUUID(), code: "B1C2D3E4F5", name: "Estereoquímica B" };
+  const savedRooms = new Map();
+  const activeRooms = new Map();
+  const closedRooms = new Map();
   let participant = null;
   let readsFail = false;
   let writesFail = false;
@@ -22,7 +24,10 @@ function classroomApi() {
 
   async function respond(route) {
     const request = route.request();
-    const path = new URL(request.url()).pathname;
+    const url = new URL(request.url());
+    const path = url.pathname;
+    const filter = (column) => url.searchParams.get(column)?.slice(3);
+    const classId = filter("turma_id");
     const method = request.method();
     const headers = {
       "access-control-allow-origin": "*",
@@ -55,35 +60,46 @@ function classroomApi() {
         return send(user && !user.is_anonymous ? [{ role: "professor" }] : []);
       case "/rest/v1/turmas":
         if (method === "POST") {
-          assert.equal(body.nome, room.name);
-          roomCreated = true;
-          return send(room, 201);
+          const saved = savedRooms.size ? nextRoom : room;
+          assert.equal(body.nome, saved.name);
+          savedRooms.set(saved.code, saved);
+          return send(saved, 201);
         }
-        return send(roomCreated ? [room] : []);
+        return send([...savedRooms.values()].filter((item) => !filter("codigo") || item.code === filter("codigo")));
       case "/rest/v1/miracast_expeditions":
         if (method === "POST") {
           assert.equal(body.turma_id, room.id);
-          startedAt ??= new Date().toISOString();
+          if (!activeRooms.has(room.id)) activeRooms.set(room.id, new Date().toISOString());
           return send(null, 201);
         }
-        return send(startedAt ? [{ started_at: startedAt }] : []);
+        return send(activeRooms.has(classId) ? [{ started_at: activeRooms.get(classId) }] : []);
       case "/rest/v1/miracast_enrollments":
-        return send(participant ? [participant] : []);
+        return send(participant && savedRooms.get(participant.roomCode)?.id === classId ? [participant] : []);
+      case "/rest/v1/miracast_closed_classes":
+        if (!historyEnabled) return send({ code: "PGRST205", message: "Tabela ausente" }, 404);
+        return send(closedRooms.has(classId) ? [{ closed_at: closedRooms.get(classId) }] : []);
       case "/rest/v1/miracast_expedition_history":
         if (!historyEnabled) return send({ code: "PGRST205", message: "Tabela ausente" }, 404);
-        return send(history.map(({ expedition }) => expedition));
+        return send(history.filter(({ expedition }) => expedition.turma_id === classId).map(({ expedition }) => expedition));
       case "/rest/v1/miracast_archived_enrollments":
-        return send(history[0]?.participants ?? []);
-      case "/rest/v1/rpc/miracast_join_class":
-        assert.equal(body.room_code, room.code);
-        participant = { id: user.id, roomCode: room.code, name: body.student_name, step: "motivation", answers: {} };
+        return send(history.find(({ expedition }) => expedition.id === filter("expedition_id"))?.participants ?? []);
+      case "/rest/v1/rpc/miracast_join_class": {
+        const target = savedRooms.get(body.room_code);
+        assert.ok(target);
+        if (closedRooms.has(target.id)) {
+          return send({ code: "P0001", message: "A expedição desta turma foi encerrada. Peça ao professor um novo código." }, 400);
+        }
+        participant = { id: user.id, roomCode: target.code, name: body.student_name, step: "motivation", answers: {} };
         return send(null);
+      }
       case "/rest/v1/rpc/miracast_class_student_state": {
         if (readsFail) return send({ code: "XX000", message: "Falha de leitura simulada" }, 500);
-        const archived = history[0]?.participants[0];
-        const enrollment = participant?.id === user?.id ? participant : archived?.id === user?.id ? archived : null;
+        const current = participant?.id === user?.id ? participant : null;
+        const archived = history.flatMap((record) => record.participants).find((item) => item.id === user?.id);
+        const enrollment = current ?? archived;
+        const enrolledRoom = savedRooms.get(enrollment?.roomCode);
         return send(enrollment ? {
-          room: { ...room, started: Boolean(startedAt) || enrollment === archived },
+          room: { ...enrolledRoom, started: activeRooms.has(enrolledRoom.id) || enrollment === archived },
           participant: enrollment, participantCount: Number(Boolean(participant)), ended: enrollment === archived,
         } : null);
       }
@@ -96,19 +112,28 @@ function classroomApi() {
           participant.step = nextStep(participant.step);
         }
         return send(null);
-      case "/rest/v1/rpc/miracast_manage_class":
+      case "/rest/v1/rpc/miracast_manage_class": {
         if (!historyEnabled) return send({ code: "PGRST202", message: "Função ausente" }, 404);
-        if (body.action === "start") startedAt = new Date().toISOString();
+        const target = savedRooms.get(body.room_code);
+        assert.ok(target);
+        if (body.action === "start") {
+          assert.equal(closedRooms.has(target.id), false);
+          activeRooms.set(target.id, new Date().toISOString());
+        }
         if (body.action === "end") {
+          const startedAt = activeRooms.get(target.id);
           assert.equal(body.expected_start, startedAt);
+          const endedAt = new Date().toISOString();
           history.unshift({
-            expedition: { id: randomUUID(), started_at: startedAt, ended_at: new Date().toISOString() },
+            expedition: { id: randomUUID(), turma_id: target.id, started_at: startedAt, ended_at: endedAt },
             participants: participant ? [participant] : [],
           });
-          startedAt = null;
+          closedRooms.set(target.id, endedAt);
+          activeRooms.delete(target.id);
           participant = null;
         }
         return send(null);
+      }
       default:
         return send({ message: `Rota de teste desconhecida: ${path}` }, 404);
     }
@@ -128,7 +153,7 @@ const text = (page, value) => page.getByText(value, { exact: true });
 const heading = (page, name) => page.getByRole("heading", { name, exact: true });
 const wait = (locator) => locator.waitFor({ state: "visible" });
 
-test("a turma funciona antes da migração de histórico e conclui a expedição após a atualização", { timeout: 90_000 }, async (t) => {
+test("a expedição encerra o código, preserva o histórico e exige uma nova turma", { timeout: 90_000 }, async (t) => {
   process.env.VITE_SUPABASE_URL = databaseHost;
   process.env.VITE_SUPABASE_PUBLISHABLE_KEY = "sb_publishable_browser_test";
   process.env.VITE_PASSWORD_MIN_LENGTH = "8";
@@ -282,6 +307,7 @@ test("a turma funciona antes da migração de histórico e conclui a expedição
   await student.emulateMedia({ media: "print" });
   assert.equal(await student.locator(".master-certificate").isVisible(), true);
   assert.equal(await heading(student, "Conquistas da Expedição").isVisible(), false);
+  await student.emulateMedia({ media: null });
 
   await wait(text(teacher.getByRole("listitem"), "Concluiu"));
   await teacher.getByLabel("Filtrar por situação").selectOption("complete");
@@ -291,10 +317,34 @@ test("a turma funciona antes da migração de histórico e conclui a expedição
   await button(teacher, "Encerrar expedição").click();
   await button(teacher, "Confirmar encerramento").click();
   await wait(heading(teacher, "Expedições anteriores"));
+  await wait(text(teacher, "Expedição encerrada"));
+  assert.equal(await button(teacher, "Iniciar expedição").count(), 0);
+  assert.equal(await button(teacher, "Copiar código").count(), 0);
   await teacher.getByLabel("Selecione uma expedição").selectOption({ index: 1 });
   await wait(heading(teacher, "Maria da Silva"));
   await text(teacher, "Respostas abertas").click();
   await wait(text(teacher, "Os ligantes ocupam posições espelhadas."));
-  await button(teacher, "Iniciar nova expedição").click();
+
+  const newStudent = await pageInNewContext();
+  await newStudent.goto(invite);
+  await newStudent.getByLabel("Seu nome").fill("Rita");
+  await button(newStudent, "Entrar na expedição").click();
+  await wait(text(newStudent, "A expedição desta turma foi encerrada. Peça ao professor um novo código."));
+
+  await button(teacher, "Criar nova turma").click();
+  await teacher.getByLabel("Nome da turma").fill("Estereoquímica B");
+  await button(teacher, "Criar turma").click();
+  await wait(heading(teacher, "Turma criada"));
+  await button(teacher, "Copiar link de convite").click();
+  await wait(text(teacher, "Copiado."));
+  const nextInvite = await teacher.evaluate(() => window.lastClipboardCopy);
+  assert.equal(new URL(nextInvite).searchParams.get("turma"), "B1C2D3E4F5");
+  assert.notEqual(nextInvite, invite);
+  await button(teacher, "Acessar turma").click();
+  await newStudent.goto(nextInvite);
+  await newStudent.getByLabel("Seu nome").fill("Rita");
+  await button(newStudent, "Entrar na expedição").click();
+  await wait(heading(newStudent, "Você está na turma Estereoquímica B!"));
+  await button(teacher, "Iniciar expedição").click();
   await wait(button(teacher, "Encerrar expedição"));
 });

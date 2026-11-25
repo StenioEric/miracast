@@ -13,13 +13,13 @@
   gap: var(--space-3);
 }
 
-.professor__end, .professor__insights {
+.professor__confirmation, .professor__insights {
   padding: var(--space-3);
   border-radius: var(--radius-sm);
   background: var(--surface-muted);
 }
 
-.professor__end {
+.professor__confirmation {
   display: grid;
   gap: var(--space-2);
 }

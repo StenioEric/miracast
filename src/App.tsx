@@ -12,7 +12,10 @@ import {
   resendTeacherConfirmation, resetTeacherPassword, verifyTeacherSession,
 } from "./services/teacherAuth";
 import type { AuthPurpose } from "./services/teacherAuth";
-import { createTeacherClass, getTeacherClass, listTeacherClasses, renameTeacherClass, manageTeacherExpedition } from "./services/teacherClasses";
+import {
+  createTeacherClass, getTeacherClass, listTeacherClasses,
+  manageTeacherExpedition, renameTeacherClass,
+} from "./services/teacherClasses";
 import type { TeacherClass, TeacherClassState } from "./services/teacherClasses";
 import { browserRoomStore, subscribeToRooms } from "./services/rooms";
 import { ExpeditionEntry } from "./pages/ExpeditionEntry/ExpeditionEntry";
@@ -446,6 +449,7 @@ function App() {
           pending={pending}
           status={status}
           onViewRoom={() => goTo({ id: "room", roomCode: screen.roomCode })}
+          onCreateRoom={() => goTo({ id: "create-room" })}
           onRename={(name) => void run(async () => {
             await renameTeacherClass(screen.roomCode, name);
             setRevision((value) => value + 1);

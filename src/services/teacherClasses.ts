@@ -7,6 +7,7 @@ export type ExpeditionHistory = { id: string; started_at: string; ended_at: stri
 export type TeacherClassState = {
   room: TeacherClass;
   startedAt: string | null;
+  closed: boolean;
   history: ExpeditionHistory[];
   historyError?: string;
   participants: ClassParticipant[];
@@ -26,12 +27,13 @@ export async function getTeacherClass(code: string): Promise<TeacherClassState |
   if (error) throw new Error("Não foi possível carregar a turma.");
   if (!data) return null;
 
-  const [expedition, participants, history] = await Promise.all([
+  const [expedition, participants, history, closure] = await Promise.all([
     api.from("miracast_expeditions").select("started_at").eq("turma_id", data.id).maybeSingle(),
     api.from("miracast_enrollments").select("id:student_id, name, step, answers")
       .eq("turma_id", data.id).order("name").order("student_id"),
     api.from("miracast_expedition_history").select("id, started_at, ended_at")
       .eq("turma_id", data.id).order("ended_at", { ascending: false }),
+    api.from("miracast_closed_classes").select("closed_at").eq("turma_id", data.id).maybeSingle(),
   ]);
   if (expedition.error || participants.error) throw new Error("Não foi possível acompanhar a expedição.");
 
@@ -40,11 +42,16 @@ export async function getTeacherClass(code: string): Promise<TeacherClassState |
     historyError = history.error.code === "PGRST205" || history.error.code === "42P01"
       ? "O histórico das expedições estará disponível após a atualização do banco."
       : "Não foi possível carregar o histórico das expedições.";
+  } else if (closure.error) {
+    historyError = closure.error.code === "PGRST205" || closure.error.code === "42P01"
+      ? "O encerramento e a exclusão estarão disponíveis após a atualização do banco."
+      : "Não foi possível verificar o encerramento da turma.";
   }
 
   return {
     room: { code: data.code, name: data.name },
     startedAt: expedition.data?.started_at ?? null,
+    closed: Boolean(closure.data || (closure.error && !expedition.data && history.data?.length)),
     history: history.data ?? [],
     historyError,
     participants: participants.data as ClassParticipant[],
@@ -69,6 +76,7 @@ export async function manageTeacherExpedition(code: string, action: "start" | "e
     room_code: code, action, expected_start: startedAt ?? null,
   });
   if (!error) return;
+  if (error.code === "P0001") throw new Error(error.message);
 
   if (action === "start" && error.code === "PGRST202") {
     const room = await api.from("turmas").select("id").eq("codigo", code).maybeSingle();
@@ -79,6 +87,7 @@ export async function manageTeacherExpedition(code: string, action: "start" | "e
       { onConflict: "turma_id", ignoreDuplicates: true },
     );
     if (!started.error) return;
+    if (started.error.code === "P0001") throw new Error(started.error.message);
   }
 
   throw new Error(action === "start" ? "Não foi possível iniciar a expedição." : "Não foi possível encerrar a expedição.");

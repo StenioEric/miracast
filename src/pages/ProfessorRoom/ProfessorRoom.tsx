@@ -15,6 +15,7 @@ type ProfessorRoomProps = TeacherClassState & {
   pending: boolean;
   status?: string;
   onViewRoom: () => void;
+  onCreateRoom: () => void;
   onRename: (name: string) => void;
   onStart: () => void;
   onEnd: (startedAt: string) => void;
@@ -48,11 +49,12 @@ function ArchivedResults({ expedition }: { expedition: ExpeditionHistory }) {
 }
 
 export function ProfessorRoom({
-  room, startedAt, participants, history, historyError, created, pending, status,
-  onViewRoom, onRename, onStart, onEnd, onBackToDashboard,
+  room, startedAt, closed, participants, history, historyError, created, pending, status,
+  onViewRoom, onCreateRoom, onRename, onStart, onEnd, onBackToDashboard,
 }: ProfessorRoomProps) {
   const [editionToEnd, setEditionToEnd] = useState<string | null>(null);
   const confirmEnd = startedAt !== null && startedAt === editionToEnd;
+  const showCreated = created && !closed;
   const [selectedHistory, setSelectedHistory] = useState("");
   const previous = history.find(({ id }) => id === selectedHistory);
   const invitePath = `${import.meta.env.BASE_URL}?turma=${encodeURIComponent(room.code)}`;
@@ -65,32 +67,31 @@ export function ProfessorRoom({
   }
 
   return (
-    <ProfessorLayout frame={created ? "2020:44" : participants.length ? "2020:72" : "2020:58"}
-      title={created ? "Turma criada" : room.name}
+    <ProfessorLayout frame={showCreated ? "2020:44" : participants.length ? "2020:72" : "2020:58"}
+      title={showCreated ? "Turma criada" : room.name}
       navigation={<Button variant="link" disabled={pending} onClick={onBackToDashboard}>Voltar ao painel</Button>}
     >
       <ContentCard>
-        {created && <p>{room.name}</p>}
+        {showCreated && <p>{room.name}</p>}
         <p>Código da turma</p>
         <output className="professor__code" aria-label="Código da turma">{room.code}</output>
-        <div className="professor__actions">
+        {!closed && <div className="professor__actions">
           <CopyTextButton value={room.code} label="Copiar código" />
           <CopyTextButton value={invite} label="Copiar link de convite" />
-        </div>
-        {created ? <>
+        </div>}
+        {showCreated ? <>
           <p>Compartilhe o convite com os alunos.</p>
           <Button onClick={onViewRoom}>Acessar turma</Button>
         </> : <>
-          <p>{startedAt ? "Expedição iniciada" : "Aguardando início"}</p>
+          <p>{closed ? "Expedição encerrada" : startedAt ? "Expedição iniciada" : "Aguardando início"}</p>
           {status && <p role="status">{status}</p>}
-          {!startedAt && <Button disabled={pending} onClick={onStart}>
-            {history.length ? "Iniciar nova expedição" : "Iniciar expedição"}
-          </Button>}
-          {startedAt && !historyError && !confirmEnd && <Button variant="secondary" disabled={pending} onClick={() => setEditionToEnd(startedAt)}>
+          {closed && <Button disabled={pending} onClick={onCreateRoom}>Criar nova turma</Button>}
+          {!closed && !startedAt && <Button disabled={pending} onClick={onStart}>Iniciar expedição</Button>}
+          {!closed && startedAt && !historyError && !confirmEnd && <Button variant="secondary" disabled={pending} onClick={() => setEditionToEnd(startedAt)}>
             Encerrar expedição
           </Button>}
-          {startedAt && !historyError && confirmEnd && <div className="professor__end">
-            <p>Encerrar salva os resultados no histórico e impede novos envios nesta expedição.</p>
+          {!closed && startedAt && !historyError && confirmEnd && <div className="professor__confirmation">
+            <p>Encerrar desativa este código para novos ingressos e envios e salva os resultados no histórico.</p>
             <div className="professor__actions">
               <Button disabled={pending} onClick={() => onEnd(startedAt)}>Confirmar encerramento</Button>
               <Button variant="secondary" disabled={pending} onClick={() => setEditionToEnd(null)}>Cancelar</Button>
@@ -99,7 +100,7 @@ export function ProfessorRoom({
         </>}
       </ContentCard>
 
-      {!created && <>
+      {!showCreated && <>
         <ContentCard as="form" key={room.name} onSubmit={submit}>
           <label className="form-field">
             Nome da turma
@@ -107,15 +108,15 @@ export function ProfessorRoom({
           </label>
           <Button type="submit" disabled={pending}>{pending ? "Salvando…" : "Salvar nome"}</Button>
         </ContentCard>
-        <ContentCard>
+        {!closed && <ContentCard>
           <h2>Alunos e progresso</h2>
           <TeacherResults key={startedAt ?? "waiting"} participants={participants} started={Boolean(startedAt)} />
-        </ContentCard>
+        </ContentCard>}
         {historyError && <ContentCard><p role="status">{historyError}</p></ContentCard>}
         {history.length > 0 && <ContentCard>
           <h2>Expedições anteriores</h2>
           <label className="form-field">Selecione uma expedição
-            <select className="form-control" value={selectedHistory} onChange={(event) => setSelectedHistory(event.target.value)}>
+            <select className="form-control" value={previous?.id ?? ""} disabled={pending} onChange={(event) => setSelectedHistory(event.target.value)}>
               <option value="">Escolha pela data de início</option>
               {history.map(({ id, started_at }) => <option key={id} value={id}>{dateFormat.format(new Date(started_at))}</option>)}
             </select>
