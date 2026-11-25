@@ -16,20 +16,16 @@ create table public.miracast_archived_enrollments (
   name text not null,
   step text not null,
   answers jsonb not null,
-  resume_code_hash bytea unique,
   primary key (expedition_id, student_id)
 );
 
 create index miracast_archived_enrollments_student_idx
   on public.miracast_archived_enrollments (student_id);
 
-alter table public.miracast_enrollments add column resume_code_hash bytea unique;
 alter table public.miracast_expedition_history enable row level security;
 alter table public.miracast_archived_enrollments enable row level security;
 
 revoke all on public.miracast_expedition_history, public.miracast_archived_enrollments from public, anon, authenticated;
-revoke select on public.miracast_enrollments from public, anon, authenticated;
-grant select (student_id, turma_id, name, step, answers) on public.miracast_enrollments to authenticated;
 grant select on public.miracast_expedition_history to authenticated;
 grant select (expedition_id, student_id, name, step, answers) on public.miracast_archived_enrollments to authenticated;
 
@@ -80,76 +76,11 @@ begin
 
   insert into public.miracast_expedition_history (turma_id, started_at, ended_at)
     values (target_class, actual_start, clock_timestamp()) returning id into history_id;
-  insert into public.miracast_archived_enrollments (expedition_id, student_id, name, step, answers, resume_code_hash)
-    select history_id, student_id, name, step, answers, resume_code_hash
+  insert into public.miracast_archived_enrollments (expedition_id, student_id, name, step, answers)
+    select history_id, student_id, name, step, answers
     from public.miracast_enrollments where turma_id = target_class;
   delete from public.miracast_enrollments where turma_id = target_class;
   delete from public.miracast_expeditions where turma_id = target_class;
-end;
-$$;
-
-create function miracast_private.issue_class_resume_code()
-returns text
-language plpgsql
-security definer
-set search_path = ''
-as $$
-declare
-  student uuid := auth.uid();
-  personal_code text := replace(gen_random_uuid()::text, '-', '');
-  code_hash bytea := sha256(convert_to(personal_code, 'UTF8'));
-begin
-  if student is null or (auth.jwt() ->> 'is_anonymous') is distinct from 'true' then
-    raise exception 'Entre pelo perfil de aluno.';
-  end if;
-  update public.miracast_enrollments set resume_code_hash = code_hash where student_id = student;
-  if not found then
-    update public.miracast_archived_enrollments set resume_code_hash = code_hash
-      where expedition_id = (
-        select a.expedition_id from public.miracast_archived_enrollments a
-        join public.miracast_expedition_history h on h.id = a.expedition_id
-        where a.student_id = student order by h.ended_at desc limit 1
-      ) and student_id = student;
-  end if;
-  if not found then raise exception 'Sua participação não foi localizada.'; end if;
-  return personal_code;
-end;
-$$;
-
-create function miracast_private.resume_class(personal_code text)
-returns void
-language plpgsql
-security definer
-set search_path = ''
-as $$
-declare
-  student uuid := auth.uid();
-  normalized_code text := lower(btrim(personal_code));
-  code_hash bytea;
-begin
-  if student is null or (auth.jwt() ->> 'is_anonymous') is distinct from 'true' then
-    raise exception 'Entre pelo perfil de aluno.';
-  end if;
-  if normalized_code is null or normalized_code !~ '^[0-9a-f]{32}$' then
-    raise exception 'Confira o código de retomada.';
-  end if;
-  code_hash := sha256(convert_to(normalized_code, 'UTF8'));
-
-  if exists (select 1 from public.miracast_enrollments
-      where student_id = student and resume_code_hash is distinct from code_hash) then
-    raise exception 'Saia da participação atual antes de retomar outra.';
-  end if;
-
-  update public.miracast_enrollments set student_id = student where resume_code_hash = code_hash;
-  if found then return; end if;
-
-  if exists (select 1 from public.miracast_archived_enrollments
-      where student_id = student and resume_code_hash is distinct from code_hash) then
-    raise exception 'Saia da participação atual antes de retomar outra.';
-  end if;
-
-  update public.miracast_archived_enrollments set student_id = student where resume_code_hash = code_hash;
-  if not found then raise exception 'Código de retomada inválido. Confira o código e tente novamente.'; end if;
 end;
 $$;
 
@@ -192,24 +123,12 @@ create function public.miracast_manage_class(room_code text, action text, expect
 returns void language sql set search_path = ''
 as $$ select miracast_private.manage_class(room_code, action, expected_start); $$;
 
-create function public.miracast_issue_class_resume_code()
-returns text language sql set search_path = ''
-as $$ select miracast_private.issue_class_resume_code(); $$;
-
-create function public.miracast_resume_class(personal_code text)
-returns void language sql set search_path = ''
-as $$ select miracast_private.resume_class(personal_code); $$;
-
 revoke execute on function
-  miracast_private.manage_class(text, text, timestamptz), public.miracast_manage_class(text, text, timestamptz),
-  miracast_private.issue_class_resume_code(), public.miracast_issue_class_resume_code(),
-  miracast_private.resume_class(text), public.miracast_resume_class(text)
+  miracast_private.manage_class(text, text, timestamptz), public.miracast_manage_class(text, text, timestamptz)
 from public, anon, authenticated;
 
 grant execute on function
-  miracast_private.manage_class(text, text, timestamptz), public.miracast_manage_class(text, text, timestamptz),
-  miracast_private.issue_class_resume_code(), public.miracast_issue_class_resume_code(),
-  miracast_private.resume_class(text), public.miracast_resume_class(text)
+  miracast_private.manage_class(text, text, timestamptz), public.miracast_manage_class(text, text, timestamptz)
 to authenticated;
 
 create or replace function miracast_private.join_class(room_code text, student_name text)

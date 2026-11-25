@@ -34,15 +34,14 @@ A [migração de demonstração](supabase/migrations/20261122000000_professor_ac
 
 ## Entrada dos alunos por código
 
-A [migração de expedições por turma](supabase/migrations/20261123025101_vincula_alunos_as_turmas.sql) acrescenta o estado de início e o registro de participações e respostas vinculados a `turmas.id`. Em seguida, aplique a [migração de histórico e retomada](supabase/migrations/20261125215239_expedition_history_and_student_resume.sql) no projeto que atende à aplicação web. O projeto deve permitir **Anonymous Users** em **Authentication → Sign In / Providers**. Assim o Supabase cria uma sessão para o aluno, que informa apenas nome e código. [Sessões anônimas do Supabase](https://supabase.com/docs/guides/auth/auth-anonymous)
+A [migração de expedições por turma](supabase/migrations/20261123025101_vincula_alunos_as_turmas.sql) acrescenta o estado de início e o registro de participações e respostas vinculados a `turmas.id`. Em seguida, aplique a [migração de histórico](supabase/migrations/20261125215239_expedition_history.sql) no projeto que atende à aplicação web. O projeto deve permitir **Anonymous Users** em **Authentication → Sign In / Providers**. Assim o Supabase cria uma sessão para o aluno, que informa apenas nome e código. [Sessões anônimas do Supabase](https://supabase.com/docs/guides/auth/auth-anonymous)
 
 1. O professor abre uma turma e compartilha o código de dez caracteres ou o link de convite, que preenche o código para o aluno.
 2. Cada aluno informa o nome e o código e aguarda na sala de espera.
 3. O professor seleciona **Iniciar expedição**. A sala de espera e a lista de alunos são atualizadas automaticamente.
 4. À medida que o aluno avança, o professor vê as etapas, as respostas e os itens com mais erros em **Alunos e progresso**. Em **Encerrar expedição**, grave os resultados no histórico. A turma volta à sala de espera para uma nova aplicação.
-5. O aluno pode gerar um **Código pessoal de retomada** na sala de espera ou durante a expedição. Ao fechar a aba ou trocar de aparelho, use **Já participei e quero retomar** e informe esse código. Ele deve ser guardado em local privado. As respostas já enviadas são recuperadas, e os rascunhos ficam disponíveis na aba em que foram digitados.
 
-O código permite entrar na expedição. O aluno recebe só sua participação, o estado da turma e a contagem de inscritos. A sessão é retomada ao recarregar a mesma aba. O acesso do professor aos resultados segue a propriedade da turma no banco. Os códigos de seis caracteres e as participações do esquema anterior continuam funcionando onde o serviço antigo está instalado. A associação de dados históricos a turmas exige uma correspondência confirmada entre os registros.
+O código permite entrar na expedição. O aluno recebe só sua participação, o estado da turma e a contagem de inscritos. Ao recarregar a mesma aba, a sessão e o rascunho continuam disponíveis. O acesso do professor aos resultados segue a propriedade da turma no banco. Os códigos de seis caracteres e as participações do esquema anterior continuam funcionando onde o serviço antigo está instalado. A associação de dados históricos a turmas exige uma correspondência confirmada entre os registros.
 
 ## Organização
 
@@ -64,7 +63,7 @@ O build inclui a checagem de tipos. Os testes cobrem a sequência de frames, val
 
 Para executar a jornada do professor e do aluno no navegador, instale o Chromium uma vez com `npx playwright-core install chromium` e rode `npm run test:browser`. Também é possível definir `MIRACAST_CHROMIUM` com o caminho de um Chrome já instalado. O teste simula o Supabase, incluindo falhas de leitura e envio, e roda com dados fictícios.
 
-O [teste de histórico e retomada](supabase/tests/expedition_history.sql) verifica recuperação em uma nova sessão, encerramento e isolamento do histórico entre professores. O [teste da expedição por turma](supabase/tests/class_expeditions.sql) verifica a entrada por código, o bloqueio antes do início, o avanço e o isolamento entre turmas em uma base de teste. Para o esquema anterior, o [teste de isolamento](supabase/tests/professor_access.sql) executa as políticas para duas contas de professor, dois alunos e uma conta sem autorização. Execute o SQL em uma base de teste com a migração aplicada. Os registros criados pelo teste são revertidos ao final.
+O [teste de histórico](supabase/tests/expedition_history.sql) verifica o encerramento das expedições e o isolamento dos resultados entre professores. O [teste da expedição por turma](supabase/tests/class_expeditions.sql) verifica a entrada por código, o bloqueio antes do início, o avanço e o isolamento entre turmas em uma base de teste. Para o esquema anterior, o [teste de isolamento](supabase/tests/professor_access.sql) executa as políticas para duas contas de professor, dois alunos e uma conta sem autorização. Execute o SQL em uma base de teste com a migração aplicada. Os registros criados pelo teste são revertidos ao final.
 
 ## Pendências
 

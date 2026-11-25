@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
 
-import type { Dispatch, ReactNode, SetStateAction } from "react";
+import type { Dispatch, SetStateAction } from "react";
 import type { ExpeditionStep } from "../../domain/expedition";
 
 type StudentWork = {
@@ -8,7 +8,6 @@ type StudentWork = {
   message?: string;
   error?: boolean;
   retry?: () => void;
-  resume?: ReactNode;
   onEdit?: () => void;
   busy?: boolean;
 };

@@ -4,7 +4,7 @@ import type { User } from "@supabase/supabase-js";
 import type { Answer, ExpeditionStep } from "./domain/expedition";
 import { ActivityRoutes } from "./navigation/ActivityRoutes";
 import {
-  advanceExpedition, getStudentState, issueClassResumeCode, joinExpedition, logoutExpedition, resumeClass, supabase,
+  advanceExpedition, getStudentState, joinExpedition, logoutExpedition, supabase,
 } from "./services/expeditionAccess";
 import type { StudentState } from "./services/expeditionAccess";
 import {
@@ -30,7 +30,6 @@ import { RedefinirSenha } from "./pages/RedefinirSenha/RedefinirSenha";
 import { PageHeader, PageLayout } from "./components/PageLayout/PageLayout";
 
 import { AnswerReview } from "./components/AnswerReview/AnswerReview";
-import { StudentResume } from "./components/StudentResume/StudentResume";
 import { clearAllStudentDrafts, clearStudentDrafts, studentDraftKey, StudentWorkContext } from "./components/StudentWork/studentWork";
 
 type Screen =
@@ -190,7 +189,6 @@ function App() {
   const [status, setStatus] = useState("");
   const [pending, setPending] = useState(false);
   const [save, setSave] = useState<AnswerSave | null>(null);
-  const [resumeCode, setResumeCode] = useState("");
   const working = useRef(false);
   const [revision, setRevision] = useState(0);
   const access = useTeacherAccess(user);
@@ -220,7 +218,6 @@ function App() {
     setError("");
     setStatus("");
     setSave(null);
-    setResumeCode("");
     setScreen(target);
     try {
       if (isSavedScreen(target)) {
@@ -321,14 +318,10 @@ function App() {
 
   function renderStudent() {
     if (!student) return <SessaoIndisponivel onBack={() => leave()} />;
-    const { participant, room, participantCount, legacy, ended } = student;
-    const resume = screen.id === "student" && !legacy ? <StudentResume code={resumeCode} pending={pending}
-      onIssue={() => void run(async () => { setResumeCode(await issueClassResumeCode()); })} /> : undefined;
-
+    const { participant, room, participantCount, ended } = student;
     if (ended && participant.step !== "master") {
       return <SessaoIndisponivel ended onBack={() => leave({ id: "entry" })}>
         <AnswerReview answers={participant.answers} />
-        {resume}
       </SessaoIndisponivel>;
     }
     if (!room.started) return <WaitingRoom
@@ -336,7 +329,6 @@ function App() {
       participantCount={participantCount}
       roomCode={room.code}
       roomName={room.name}
-      resume={resume}
       onBack={() => leave()}
     />;
 
@@ -374,7 +366,7 @@ function App() {
 
     return <StudentWorkContext.Provider key={draftKey}
       value={{ draftKey, message: saveMessage, error: Boolean(failed), busy: save?.state === "saving",
-        retry: failed ? () => advance(step, failed.answer) : undefined, resume,
+        retry: failed ? () => advance(step, failed.answer) : undefined,
         onEdit: () => setSave((current) => current?.state === "failed" ? null : current) }}>
       {page}
     </StudentWorkContext.Provider>;
@@ -386,14 +378,8 @@ function App() {
         return <Start onEnterAsStudent={() => goTo({ id: "entry" })} onEnterAsProfessor={() => goTo({ id: "professor-login" })} />;
       case "entry":
         return <ExpeditionEntry onBack={() => leave()} pending={pending} error={error} inviteCode={getInviteCode()}
-          onModeChange={() => setError("")}
           onJoin={(code, name) => void run(async () => {
             await joinExpedition(code, name);
-            clearInviteCode();
-            goTo({ id: "student" });
-          })}
-          onResume={(code) => void run(async () => {
-            await resumeClass(code);
             clearInviteCode();
             goTo({ id: "student" });
           })} />;

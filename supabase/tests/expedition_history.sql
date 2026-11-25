@@ -6,8 +6,7 @@ insert into auth.users (id, is_anonymous) values
   ('30400000-0000-0000-0000-000000000002', false),
   ('30400000-0000-0000-0000-000000000003', true),
   ('30400000-0000-0000-0000-000000000004', true),
-  ('30400000-0000-0000-0000-000000000005', true),
-  ('30400000-0000-0000-0000-000000000006', true);
+  ('30400000-0000-0000-0000-000000000005', true);
 
 insert into public.turmas (id, professor_id, codigo, nome) values
   ('30500000-0000-0000-0000-000000000001', '30400000-0000-0000-0000-000000000001', 'ABCDE00001', 'Histórico A'),
@@ -16,22 +15,6 @@ insert into public.turmas (id, professor_id, codigo, nome) values
 set local role authenticated;
 select set_config('request.jwt.claims', '{"sub":"30400000-0000-0000-0000-000000000003","is_anonymous":true}', true);
 select public.miracast_join_class('ABCDE00001', 'Ana');
-do $$
-declare
-  old_code text := public.miracast_issue_class_resume_code();
-  code text := public.miracast_issue_class_resume_code();
-begin
-  if code !~ '^[0-9a-f]{32}$' or code = old_code then raise exception 'O código deveria ser individual e renovável'; end if;
-  perform set_config('miracast.test.resume_code', code, true);
-  begin
-    perform public.miracast_resume_class(old_code);
-    raise exception 'O código substituído continuou ativo';
-  exception when raise_exception then
-    if sqlerrm not like 'Sai%participação atual%' then raise; end if;
-  end;
-end;
-$$;
-
 select set_config('request.jwt.claims', '{"sub":"30400000-0000-0000-0000-000000000002","is_anonymous":false}', true);
 do $$
 begin
@@ -53,8 +36,6 @@ select set_config('request.jwt.claims', '{"sub":"30400000-0000-0000-0000-0000000
 select public.miracast_advance_class('motivation');
 select public.miracast_advance_class('protocol', '{"value":"Resposta preservada"}');
 
-select set_config('request.jwt.claims', '{"sub":"30400000-0000-0000-0000-000000000004","is_anonymous":true}', true);
-select public.miracast_resume_class(current_setting('miracast.test.resume_code'));
 do $$
 declare
   snapshot jsonb := public.miracast_class_student_state();
@@ -63,15 +44,15 @@ begin
     or snapshot #>> '{participant,step}' is distinct from 'classification'
     or snapshot #>> '{participant,answers,protocol,value}' is distinct from 'Resposta preservada'
     or snapshot ->> 'participantCount' is distinct from '1' then
-    raise exception 'A retomada deveria preservar nome, etapa e resposta';
+    raise exception 'A participação deveria preservar nome, etapa e resposta';
   end if;
 end;
 $$;
-select set_config('request.jwt.claims', '{"sub":"30400000-0000-0000-0000-000000000003","is_anonymous":true}', true);
+select set_config('request.jwt.claims', '{"sub":"30400000-0000-0000-0000-000000000004","is_anonymous":true}', true);
 do $$
 begin
   if public.miracast_class_student_state() is not null then
-    raise exception 'A sessão anterior manteve acesso à participação transferida';
+    raise exception 'Uma sessão recebeu a participação de outro aluno';
   end if;
 end;
 $$;
@@ -88,11 +69,6 @@ begin
     or (select answers #>> '{protocol,value}' from public.miracast_archived_enrollments) is distinct from 'Resposta preservada' then
     raise exception 'O encerramento deveria abrir espaço para outra expedição e preservar o histórico';
   end if;
-  begin
-    perform resume_code_hash from public.miracast_archived_enrollments;
-    raise exception 'O painel do professor recebeu os hashes de retomada';
-  exception when insufficient_privilege then null;
-  end;
 end;
 $$;
 
@@ -116,13 +92,12 @@ begin
 end;
 $$;
 
-select set_config('request.jwt.claims', '{"sub":"30400000-0000-0000-0000-000000000006","is_anonymous":true}', true);
-select public.miracast_resume_class(current_setting('miracast.test.resume_code'));
+select set_config('request.jwt.claims', '{"sub":"30400000-0000-0000-0000-000000000003","is_anonymous":true}', true);
 do $$
 begin
   if public.miracast_class_student_state() ->> 'ended' is distinct from 'true'
     or public.miracast_class_student_state() #>> '{participant,name}' is distinct from 'Ana' then
-    raise exception 'A retomada de uma expedição encerrada deveria abrir o resultado anterior';
+    raise exception 'A sessão do aluno deveria mostrar o resultado da expedição encerrada';
   end if;
 end;
 $$;

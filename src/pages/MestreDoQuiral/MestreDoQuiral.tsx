@@ -1,8 +1,6 @@
-import { useContext } from "react";
 import type { Answer, ExpeditionStep } from "../../domain/expedition";
 import { activityProgress, scoreSummary } from "../../domain/expedition";
 import { AnswerReview } from "../../components/AnswerReview/AnswerReview";
-import { StudentWorkContext } from "../../components/StudentWork/studentWork";
 import { StudentWorkStatus } from "../../components/StudentWork/StudentWorkStatus";
 import { Button } from "../../components/Button/Button";
 import { ContentCard } from "../../components/ContentCard/ContentCard";
@@ -25,7 +23,6 @@ const achievements = [
 ];
 
 export function MestreDoQuiral({ answers, studentName, onFinish }: MestreDoQuiralProps) {
-  const resume = useContext(StudentWorkContext)?.resume;
   const progress = activityProgress("master");
   const score = scoreSummary(answers);
 
@@ -57,7 +54,6 @@ export function MestreDoQuiral({ answers, studentName, onFinish }: MestreDoQuira
       </ContentCard>
 
       <Button variant="secondary" onClick={() => window.print()}>Imprimir ou salvar certificado em PDF</Button>
-      {resume && <ContentCard>{resume}</ContentCard>}
 
       <section className="master-achievements" aria-labelledby="master-achievements-title">
         <h2 id="master-achievements-title">

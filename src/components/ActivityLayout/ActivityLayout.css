@@ -53,33 +53,9 @@
   font-weight: 700;
 }
 
-.activity-tools {
-  display: grid;
-  gap: var(--space-2);
-}
-
-.activity-tools details {
-  padding: var(--space-2) var(--space-3);
-  border: var(--border-size) solid var(--border-muted);
-  border-radius: var(--radius-sm);
-  background: var(--white);
-  color: var(--ink);
-}
-
-.activity-tools summary {
-  padding-block: var(--space-1);
-  cursor: pointer;
-  font-weight: 700;
-}
-
 .activity-objective {
   padding-inline-start: var(--space-3);
   border-inline-start: .25rem solid var(--purple);
-}
-
-.student-resume__code {
-  overflow-wrap: anywhere;
-  font-weight: 700;
 }
 
 .student-work:not(:has(p:not(:empty), button)) {

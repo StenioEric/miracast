@@ -1,4 +1,3 @@
-import type { ReactNode } from "react";
 import { Button } from "../../components/Button/Button";
 import { ContentCard } from "../../components/ContentCard/ContentCard";
 import { PageFooter, PageHeader, PageLayout } from "../../components/PageLayout/PageLayout";
@@ -9,11 +8,10 @@ type WaitingRoomProps = {
   participantCount: number;
   roomCode: string;
   roomName: string;
-  resume?: ReactNode;
   onBack: () => void;
 };
 
-export function WaitingRoom({ participantName, participantCount, roomCode, roomName, resume, onBack }: WaitingRoomProps) {
+export function WaitingRoom({ participantName, participantCount, roomCode, roomName, onBack }: WaitingRoomProps) {
   return (
     <PageLayout
       frame="13:1202"
@@ -29,7 +27,6 @@ export function WaitingRoom({ participantName, participantCount, roomCode, roomN
         <p><span aria-hidden="true">👤 </span>{participantName}</p>
         <p role="status">{participantCount} {participantCount === 1 ? "aluno inscrito" : "alunos inscritos"}</p>
       </ContentCard>
-      {resume && <ContentCard>{resume}</ContentCard>}
     </PageLayout>
   );
 }

@@ -15,7 +15,6 @@ function classroomApi() {
   let roomCreated = false;
   let startedAt = null;
   let participant = null;
-  let personalCode = "";
   let readsFail = false;
   let writesFail = false;
   let registrations = 0;
@@ -83,13 +82,6 @@ function classroomApi() {
       }
       case "/rest/v1/rpc/miracast_student_state":
         return send(null);
-      case "/rest/v1/rpc/miracast_issue_class_resume_code":
-        personalCode = randomUUID().replaceAll("-", "");
-        return send(personalCode);
-      case "/rest/v1/rpc/miracast_resume_class":
-        assert.equal(body.personal_code, personalCode);
-        participant.id = user.id;
-        return send(null);
       case "/rest/v1/rpc/miracast_advance_class":
         if (writesFail) return send({ code: "XX000", message: "Falha de envio simulada" }, 500);
         if (body.expected_step === participant.step) {
@@ -127,7 +119,7 @@ const text = (page, value) => page.getByText(value, { exact: true });
 const heading = (page, name) => page.getByRole("heading", { name, exact: true });
 const wait = (locator) => locator.waitFor({ state: "visible" });
 
-test("professor e aluno completam a expedição com reconexão, retomada e histórico", { timeout: 90_000 }, async (t) => {
+test("professor e aluno completam a expedição com reconexão e histórico", { timeout: 90_000 }, async (t) => {
   process.env.VITE_SUPABASE_URL = databaseHost;
   process.env.VITE_SUPABASE_PUBLISHABLE_KEY = "sb_publishable_browser_test";
   process.env.VITE_PASSWORD_MIN_LENGTH = "8";
@@ -196,15 +188,14 @@ test("professor e aluno completam a expedição com reconexão, retomada e hist�
   assert.equal(new URL(invite).searchParams.get("turma"), "A1B2C3D4E5");
   await button(teacher, "Acessar turma").click();
 
-  let student = await pageInNewContext();
+  const student = await pageInNewContext();
   await student.goto(invite);
   assert.equal(await student.getByLabel("Código da turma").inputValue(), "A1B2C3D4E5");
+  assert.equal(await text(student, "Já participei e quero retomar").count(), 0);
   await student.getByLabel("Seu nome").fill("Maria da Silva");
   await button(student, "Entrar na expedição").click();
   await wait(heading(student, "Você está na turma Estereoquímica A!"));
-  await text(student, "Código pessoal de retomada").click();
-  await button(student, "Gerar código de retomada").click();
-  const code = await student.locator(".student-resume__code").innerText();
+  assert.equal(await text(student, "Código pessoal de retomada").count(), 0);
 
   await button(teacher, "Iniciar expedição").click();
   await button(student, "Aceitar a expedição").click();
@@ -213,6 +204,7 @@ test("professor e aluno completam a expedição com reconexão, retomada e hist�
   await wait(text(student, "Atividade 1 de 18"));
   assert.equal(await text(student, "Ver percurso").count(), 0);
   assert.equal(await text(student, "Consultar caderno de campo").count(), 0);
+  assert.equal(await text(student, "Código pessoal de retomada").count(), 0);
   for (const fieldset of await student.locator("fieldset").all()) await fieldset.getByRole("radio").first().check();
   await button(student, "Classificar todos").click();
   await button(student, "Continuar").click();
@@ -238,15 +230,6 @@ test("professor e aluno completam a expedição com reconexão, retomada e hist�
   assert.equal(await student.locator("textarea").inputValue(), explanation);
   api.failWrites(false);
   await button(student, "Tentar novamente").click();
-  await wait(text(student, "Atividade 3 de 18"));
-
-  await student.context().close();
-  student = await pageInNewContext();
-  await student.goto(site);
-  await button(student, "Entrar como Aluno").click();
-  await button(student, "Já participei e quero retomar").click();
-  await student.getByLabel("Código pessoal").fill(code);
-  await button(student, "Retomar expedição").click();
   await wait(text(student, "Atividade 3 de 18"));
 
   const numbered = expeditionSteps.slice(expeditionSteps.indexOf("classification"), -1);
@@ -282,6 +265,7 @@ test("professor e aluno completam a expedição com reconexão, retomada e hist�
 
   await wait(heading(student, "Mestre do Cristal!"));
   await wait(text(student, "Maria da Silva"));
+  assert.equal(await text(student, "Código pessoal de retomada").count(), 0);
   await text(student, "Rever respostas e explicações").click();
   await wait(text(student, "Os ligantes ocupam posições espelhadas."));
   await student.emulateMedia({ media: "print" });
