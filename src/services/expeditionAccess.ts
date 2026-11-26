@@ -1,8 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 
 import type { Answer, ExpeditionStep } from "../domain/expedition";
-import { normalizeRoomCode } from "./rooms";
-import type { Participant, Room } from "./rooms";
 
 const url = import.meta.env.VITE_SUPABASE_URL?.trim();
 const publishableKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY?.trim();
@@ -41,8 +39,16 @@ export async function logoutExpedition() {
   if (error) throw new Error("Não foi possível encerrar a sessão. Tente novamente.");
 }
 
+export type Participant = {
+  id: string;
+  roomCode: string;
+  name: string;
+  step: ExpeditionStep;
+  answers: Partial<Record<ExpeditionStep, Answer>>;
+};
+
 export type StudentState = {
-  room: Room;
+  room: { code: string; name: string; started: boolean };
   participant: Participant;
   participantCount: number;
   ended?: boolean;
@@ -64,7 +70,7 @@ export async function joinExpedition(code: string, name: string) {
   }
 
   const { error: joinError } = await api.rpc("miracast_join_class", {
-    room_code: normalizeRoomCode(code),
+    room_code: code.trim().toUpperCase(),
     student_name: name.trim(),
   });
   if (joinError?.code === "PGRST202") {

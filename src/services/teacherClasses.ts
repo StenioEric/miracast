@@ -1,5 +1,5 @@
 import { client } from "./expeditionAccess";
-import type { Participant } from "./rooms";
+import type { Participant } from "./expeditionAccess";
 
 export type TeacherClass = { code: string; name: string };
 export type ClassParticipant = Omit<Participant, "roomCode">;

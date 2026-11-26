@@ -17,7 +17,6 @@ import {
   manageTeacherExpedition, renameTeacherClass,
 } from "./services/teacherClasses";
 import type { TeacherClass, TeacherClassState } from "./services/teacherClasses";
-import { browserRoomStore, subscribeToRooms } from "./services/rooms";
 import { ExpeditionEntry } from "./pages/ExpeditionEntry/ExpeditionEntry";
 import { Motivation } from "./pages/Motivation/Motivation";
 import { Protocol } from "./pages/Protocol/Protocol";
@@ -39,8 +38,7 @@ type Screen =
   | { id: "start" | "entry" | "professor-login" | "dashboard" | "create-room" | "student" }
   | { id: "room"; roomCode: string; created?: boolean }
   | { id: "auth-callback"; purpose: AuthPurpose }
-  | { id: "reset-password"; userId: string }
-  | { id: "local-student"; participantId: string };
+  | { id: "reset-password"; userId: string };
 
 type RemoteData =
   | { kind: "dashboard"; rooms: TeacherClass[] }
@@ -68,11 +66,10 @@ function clearInviteCode() {
   window.history.replaceState(window.history.state, "", url);
 }
 
-const legacyParticipantKey = "miracast:active-participant";
 const screenKey = "miracast:screen";
 const legacyProfessorScreenKey = "miracast:professor-screen";
 
-function isSavedScreen(value: unknown): value is Exclude<Screen, { id: "local-student" | "auth-callback" }> {
+function isSavedScreen(value: unknown): value is Exclude<Screen, { id: "auth-callback" }> {
   if (!value || typeof value !== "object" || !("id" in value)) return false;
   switch (value.id) {
     case "professor-login":
@@ -96,8 +93,6 @@ function initialScreen(): Screen {
   try {
     const saved: unknown = JSON.parse(sessionStorage.getItem(screenKey) ?? "null");
     if (isSavedScreen(saved)) return saved;
-    const localParticipant = sessionStorage.getItem(legacyParticipantKey);
-    if (localParticipant) return { id: "local-student", participantId: localParticipant };
     const legacy: unknown = JSON.parse(sessionStorage.getItem(legacyProfessorScreenKey) ?? "null");
     if (isSavedScreen(legacy)) return legacy;
   } catch {
@@ -174,17 +169,6 @@ function useRemoteData(screen: Screen, user: User | null | undefined, teacherAut
   return enabled && snapshot?.screen === screen && snapshot.userId === userId ? snapshot : null;
 }
 
-function readLocalStudent(participantId: string): StudentState | null {
-  try {
-    const store = browserRoomStore();
-    const participant = store.getParticipant(participantId);
-    const room = participant && store.getRoom(participant.roomCode);
-    return room && participant ? { room, participant, participantCount: store.participants(room.code).length } : null;
-  } catch {
-    return null;
-  }
-}
-
 function App() {
   const [screen, setScreen] = useState<Screen>(initialScreen);
   const [user, setUser] = useState<User | null | undefined>(supabase ? undefined : null);
@@ -203,14 +187,8 @@ function App() {
     return () => subscription?.data.subscription.unsubscribe();
   }, []);
 
-  useEffect(() => {
-    if (screen.id === "local-student") return subscribeToRooms(() => setRevision((value) => value + 1));
-  }, [screen.id]);
-
   const data = remote?.data;
-  const student = screen.id === "local-student"
-    ? readLocalStudent(screen.participantId)
-    : data?.kind === "student" ? data.details : null;
+  const student = data?.kind === "student" ? data.details : null;
   const visibleStep = student?.room.started ? student.participant.step : undefined;
 
   useEffect(() => {
@@ -229,7 +207,6 @@ function App() {
         sessionStorage.removeItem(screenKey);
       }
       sessionStorage.removeItem(legacyProfessorScreenKey);
-      sessionStorage.removeItem(legacyParticipantKey);
     } catch {
       // A navegação atual também funciona sem retomar a tela ao recarregar.
     }
@@ -283,12 +260,8 @@ function App() {
       const draftKey = studentDraftKey(student.participant.id, step);
       setSave({ step, answer, state: "saving" });
       try {
-        if (screen.id === "local-student") {
-          browserRoomStore().advance(student.participant.id, step, answer);
-        } else {
-          await advanceExpedition(step, answer);
-          setRevision((value) => value + 1);
-        }
+        await advanceExpedition(step, answer);
+        setRevision((value) => value + 1);
         clearStudentDrafts(draftKey);
         setSave({ step, answer, state: "saved" });
       } catch (problem) {
@@ -404,8 +377,6 @@ function App() {
             setStatus("Senha atualizada. Entre com a nova senha.");
           })}
         />;
-      case "local-student":
-        return renderStudent();
     }
 
     if (user === undefined) return <LoadingScreen />;
