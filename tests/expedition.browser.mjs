@@ -109,8 +109,6 @@ function classroomApi() {
           participant: enrollment, participantCount: Number(Boolean(participant)), ended: enrollment === archived,
         } : null);
       }
-      case "/rest/v1/rpc/miracast_student_state":
-        return send(null);
       case "/rest/v1/rpc/miracast_advance_class":
         if (writesFail) return send({ code: "XX000", message: "Falha de envio simulada" }, 500);
         if (body.expected_step === participant.step) {
@@ -231,8 +229,24 @@ test("a expedição encerra o código, permite excluir o histórico e exige uma 
   await wait(text(teacher, "O histórico das expedições estará disponível após a atualização do banco."));
 
   const student = await pageInNewContext();
+  const studentRequests = new Set();
+  student.on("request", (request) => {
+    const url = new URL(request.url());
+    if (url.origin === databaseHost) studentRequests.add(url.pathname);
+  });
+  const code = student.getByLabel("Código da turma");
+  await student.goto(new URL("?turma=ABC234", site).href);
+  await wait(text(student, "Use o código de 10 caracteres fornecido pelo professor."));
+  assert.equal(await code.inputValue(), "ABC234");
+  await student.getByLabel("Seu nome").fill("Maria da Silva");
+  await button(student, "Entrar na expedição").click();
+  assert.equal(await code.evaluate((field) => field.validity.patternMismatch && document.activeElement === field), true);
+  assert.equal(studentRequests.size, 0);
+
   await student.goto(invite);
-  assert.equal(await student.getByLabel("Código da turma").inputValue(), "A1B2C3D4E5");
+  assert.equal(await code.inputValue(), "A1B2C3D4E5");
+  await code.fill("a1b2 c3d4e5");
+  assert.equal(await code.inputValue(), "A1B2C3D4E5");
   assert.equal(await text(student, "Já participei e quero retomar").count(), 0);
   await student.getByLabel("Seu nome").fill("Maria da Silva");
   await button(student, "Entrar na expedição").click();
@@ -342,6 +356,9 @@ test("a expedição encerra o código, permite excluir o histórico e exige uma 
   await wait(text(teacher, "Expedição encerrada"));
   assert.equal(await button(teacher, "Iniciar expedição").count(), 0);
   await wait(heading(student, "Sala ou sessão indisponível"));
+  for (const name of ["miracast_join_room", "miracast_student_state", "miracast_advance"]) {
+    assert.equal(studentRequests.has(`/rest/v1/rpc/${name}`), false);
+  }
 
   const newStudent = await pageInNewContext();
   await newStudent.goto(invite);
@@ -365,4 +382,23 @@ test("a expedição encerra o código, permite excluir o histórico e exige uma 
   await wait(heading(newStudent, "Você está na turma Estereoquímica B!"));
   await button(teacher, "Iniciar expedição").click();
   await wait(button(teacher, "Encerrar expedição"));
+
+  const localStudent = await pageInNewContext();
+  await localStudent.addInitScript(() => {
+    const id = "aluna-local";
+    const roomCode = "ABC234";
+    if (sessionStorage.getItem("miracast:active-participant")) return;
+    sessionStorage.setItem("miracast:active-participant", id);
+    localStorage.setItem(`miracast:v1:room:${roomCode}`, JSON.stringify({
+      code: roomCode, name: "Turma local", started: true,
+    }));
+    localStorage.setItem(`miracast:v1:participant:${id}`, JSON.stringify({
+      id, roomCode, name: "Aluna local", step: "motivation", answers: {},
+    }));
+  });
+  await localStudent.goto(site);
+  await button(localStudent, "Aceitar a expedição").click();
+  await wait(button(localStudent, "Iniciar fase 1"));
+  await localStudent.reload();
+  await wait(button(localStudent, "Iniciar fase 1"));
 });
