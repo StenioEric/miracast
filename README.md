@@ -43,7 +43,7 @@ A [migração de expedições por turma](supabase/migrations/20261123025101_vinc
 5. Para repetir a atividade, use **Criar nova turma** e compartilhe o novo código.
 6. Em **Expedições anteriores**, selecione uma expedição e use **Excluir expedição**. Após confirmar, a expedição, as participações e as respostas dela são excluídas do banco. A turma permanece encerrada com seu código desativado.
 
-O código permite entrar na expedição. O aluno recebe só sua participação, o estado da turma e a contagem de inscritos. Ao recarregar a mesma aba, a sessão e o rascunho continuam disponíveis. O acesso do professor aos resultados segue a propriedade da turma no banco. Os códigos de seis caracteres e as participações do esquema anterior continuam funcionando onde o serviço antigo está instalado. A associação de dados históricos a turmas exige uma correspondência confirmada entre os registros.
+O código de dez caracteres permite entrar na expedição. O aluno recebe só sua participação, o estado da turma e a contagem de inscritos. Ao recarregar a mesma aba, a sessão e o rascunho continuam disponíveis. O acesso do professor aos resultados segue a propriedade da turma no banco. Sessões locais já salvas ainda podem ser retomadas no navegador de origem. A associação de dados históricos a turmas exige uma correspondência confirmada entre os registros.
 
 ## Organização
 
