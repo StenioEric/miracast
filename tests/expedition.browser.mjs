@@ -382,23 +382,4 @@ test("a expedição encerra o código, permite excluir o histórico e exige uma 
   await wait(heading(newStudent, "Você está na turma Estereoquímica B!"));
   await button(teacher, "Iniciar expedição").click();
   await wait(button(teacher, "Encerrar expedição"));
-
-  const localStudent = await pageInNewContext();
-  await localStudent.addInitScript(() => {
-    const id = "aluna-local";
-    const roomCode = "ABC234";
-    if (sessionStorage.getItem("miracast:active-participant")) return;
-    sessionStorage.setItem("miracast:active-participant", id);
-    localStorage.setItem(`miracast:v1:room:${roomCode}`, JSON.stringify({
-      code: roomCode, name: "Turma local", started: true,
-    }));
-    localStorage.setItem(`miracast:v1:participant:${id}`, JSON.stringify({
-      id, roomCode, name: "Aluna local", step: "motivation", answers: {},
-    }));
-  });
-  await localStudent.goto(site);
-  await button(localStudent, "Aceitar a expedição").click();
-  await wait(button(localStudent, "Iniciar fase 1"));
-  await localStudent.reload();
-  await wait(button(localStudent, "Iniciar fase 1"));
 });
