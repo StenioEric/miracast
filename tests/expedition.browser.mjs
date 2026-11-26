@@ -229,6 +229,9 @@ test("a expedição encerra o código, permite excluir o histórico e exige uma 
   await wait(text(teacher, "O histórico das expedições estará disponível após a atualização do banco."));
 
   const student = await pageInNewContext();
+  await student.addInitScript(() => {
+    sessionStorage.setItem("miracast:active-participant", "aluna-local");
+  });
   const studentRequests = new Set();
   student.on("request", (request) => {
     const url = new URL(request.url());
@@ -273,6 +276,7 @@ test("a expedição encerra o código, permite excluir o histórico e exige uma 
   assert.equal(await student.locator("textarea").inputValue(), explanation);
   api.failReads(false);
   await student.reload();
+  await wait(text(student, "Atividade 2 de 18"));
   assert.equal(await student.locator("textarea").inputValue(), explanation);
 
   await student.locator("textarea").fill("a".repeat(2000));
