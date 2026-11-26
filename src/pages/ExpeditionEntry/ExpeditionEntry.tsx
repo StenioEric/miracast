@@ -33,12 +33,12 @@ export function ExpeditionEntry({ onJoin, onBack, pending, inviteCode, error }: 
       </PageFooter>}
     >
       <ContentCard as="form" onSubmit={submit}>
-        <p>Use o código da turma fornecido pelo professor.</p>
+        <p id="expedicao-codigo-ajuda">Use o código de 10 caracteres fornecido pelo professor.</p>
         <label className="form-field">
           Código da turma
           <input className="form-control expedicao__codigo" name="code"
-            pattern="[A-Z0-9]{6}|[A-F0-9]{10}" autoCapitalize="characters"
-            title="Use o código de 10 caracteres, ou o código de 6 caracteres de uma sala antiga"
+            pattern="[A-F0-9]{10}" autoCapitalize="characters"
+            aria-describedby="expedicao-codigo-ajuda"
             autoComplete="off" spellCheck={false} placeholder="Ex.: A1B2C3D4E5" required
             value={code} onChange={(event) => setCode(event.target.value.replace(/\s/g, "").toUpperCase())} />
         </label>

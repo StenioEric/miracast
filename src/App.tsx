@@ -286,7 +286,7 @@ function App() {
         if (screen.id === "local-student") {
           browserRoomStore().advance(student.participant.id, step, answer);
         } else {
-          await advanceExpedition(step, answer, student.legacy);
+          await advanceExpedition(step, answer);
           setRevision((value) => value + 1);
         }
         clearStudentDrafts(draftKey);
