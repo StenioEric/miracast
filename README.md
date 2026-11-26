@@ -43,7 +43,7 @@ A [migração de expedições por turma](supabase/migrations/20261123025101_vinc
 5. Para repetir a atividade, use **Criar nova turma** e compartilhe o novo código.
 6. Em **Expedições anteriores**, selecione uma expedição e use **Excluir expedição**. Após confirmar, a expedição, as participações e as respostas dela são excluídas do banco. A turma permanece encerrada com seu código desativado.
 
-O código de dez caracteres permite entrar na expedição. O aluno recebe só sua participação, o estado da turma e a contagem de inscritos. Ao recarregar a mesma aba, a sessão e o rascunho continuam disponíveis. O acesso do professor aos resultados segue a propriedade da turma no banco. Sessões locais já salvas ainda podem ser retomadas no navegador de origem. A associação de dados históricos a turmas exige uma correspondência confirmada entre os registros.
+O código de dez caracteres permite entrar na expedição. O aluno recebe só sua participação, o estado da turma e a contagem de inscritos. Ao recarregar a mesma aba, a sessão e o rascunho continuam disponíveis. O acesso do professor aos resultados segue a propriedade da turma no banco. O modo de expedição que salvava salas e progresso apenas no navegador foi descontinuado. A associação de dados históricos a turmas exige uma correspondência confirmada entre os registros.
 
 ## Organização
 
@@ -51,7 +51,7 @@ O código de dez caracteres permite entrar na expedição. O aluno recebe só su
 - `src/navigation/ActivityRoutes.tsx` associa os IDs das 18 atividades às páginas. `src/domain/expedition.ts` define a ordem de avanço e o cálculo da pontuação.
 - `src/components/` contém os layouts compartilhados, campos de resposta e modelos moleculares. As respostas abertas podem ser lidas pelo professor e ficam fora da pontuação automática.
 - `src/services/teacherAuth.ts` integra o cadastro, a sessão e a recuperação de senha. `src/services/teacherClasses.ts` consulta e atualiza `turmas`.
-- `src/services/expeditionAccess.ts` integra o ingresso e o avanço dos alunos ao Supabase. `src/services/rooms.ts` preserva as sessões locais existentes.
+- `src/services/expeditionAccess.ts` integra o ingresso e o avanço dos alunos ao Supabase.
 
 ## Verificar
 
@@ -61,7 +61,7 @@ npm run build
 node --test --test-isolation=none tests/*.test.mjs
 ```
 
-O build inclui a checagem de tipos. Os testes cobrem a sequência de frames, validação de sala, participantes homônimos, bloqueio antes do início, retomada dos registros, rejeição de avanços fora de ordem e cálculo da pontuação. Eles também verificam o feedback de cada alternativa, os estados iniciais dos botões e a estrutura dos componentes compartilhados.
+O build inclui a checagem de tipos. Os testes automatizados cobrem a sequência de atividades, o cálculo da pontuação, o feedback das alternativas, os estados iniciais dos botões e a estrutura dos componentes compartilhados.
 
 Para executar a jornada do professor e do aluno no navegador, instale o Chromium uma vez com `npx playwright-core install chromium` e rode `npm run test:browser`. Também é possível definir `MIRACAST_CHROMIUM` com o caminho de um Chrome já instalado. O teste simula o Supabase, incluindo falhas de leitura e envio, e roda com dados fictícios.
 
