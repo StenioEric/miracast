@@ -188,7 +188,10 @@ async function checkSuperpositionViewer(page) {
   const bounds = await canvas.boundingBox();
   const crop = { ...bounds, width: Math.floor(bounds.width / 2) };
   const reference = { ...crop, x: bounds.x + bounds.width - crop.width };
-  const capture = (clip) => page.screenshot({ clip });
+  async function capture(clip) {
+    await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+    return page.screenshot({ clip });
+  }
   const left = await capture(crop);
   const right = await capture(reference);
   assert.notDeepEqual(left, right);
