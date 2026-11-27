@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import { projectPoint } from "../../utils/moleculeGeometry";
+import { chemicalElements, projectPoint, reflectPoint, tetrahedralVertices } from "../../utils/moleculeGeometry";
 import type { Ligands } from "../../utils/moleculeGeometry";
 import { Button } from "../Button/Button";
 import "./Molecule.css";
@@ -12,15 +12,17 @@ const ligandNames: Record<string, string> = {
   OH: "hidroxila (OH)", "CH₃": "metila (CH₃)", COOH: "carboxila (COOH)",
 };
 
-const vertices = [[1, 1, 1], [1, -1, -1], [-1, 1, -1], [-1, -1, 1]] as const;
-const colors: Record<string, string> = { H: "#edf2f5", Cl: "#90e098", Br: "#f7a66d", F: "#b9e9ff", OH: "#f7a7ba", "CH₃": "#bedaef", COOH: "#ffd475" };
+const colors: Record<string, string> = {
+  H: chemicalElements.H.color, Cl: chemicalElements.Cl.color, Br: chemicalElements.Br.color, F: chemicalElements.F.color,
+  OH: "#f7a7ba", "CH₃": "#bedaef", COOH: "#ffd475",
+};
 
 export function Molecule({ ligands, yaw = initialYaw, pitch = initialPitch, mirror = false, label, overlay }: {
   ligands: Ligands; yaw?: number; pitch?: number; mirror?: boolean; label: string; overlay?: boolean;
 }) {
   function joints(reflected: boolean, angle: number, tilt: number) {
-    return vertices.map(([x, y, z], index) => {
-      const [right, up, depth] = projectPoint([reflected ? -x : x, y, z], angle, tilt);
+    return tetrahedralVertices.map((point, index) => {
+      const [right, up, depth] = projectPoint(reflected ? reflectPoint(point) : point, angle, tilt);
       return { index, x: 120 + 44 * right, y: 106 - 44 * up, depth };
     }).sort((left, right) => left.depth - right.depth);
   }
@@ -40,7 +42,7 @@ export function Molecule({ ligands, yaw = initialYaw, pitch = initialPitch, mirr
         <line key={index} x1={120} y1={106} x2={x} y2={y}
           stroke="#3c4b4e" strokeWidth={depth < 0 ? 3 : 5} strokeDasharray={depth < 0 ? "4 3" : undefined} />
       ))}
-      <circle cx={120} cy={106} r={17} fill="#26332f" />
+      <circle cx={120} cy={106} r={17} fill={chemicalElements.C.color} />
       <text x={120} y={106} fill="white">C</text>
       {positions.map(({ index, x, y }) => {
         const ligand = ligands[index];
