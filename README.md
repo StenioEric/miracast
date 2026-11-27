@@ -53,6 +53,24 @@ O código de dez caracteres permite entrar na expedição. O aluno recebe só su
 - `src/services/teacherAuth.ts` integra o cadastro, a sessão e a recuperação de senha. `src/services/teacherClasses.ts` consulta e atualiza `turmas`.
 - `src/services/expeditionAccess.ts` integra o ingresso e o avanço dos alunos ao Supabase.
 
+## Visualização molecular 3D
+
+- Em **Tente sobrepor**, selecione uma alternativa e clique em **Abrir visualização molecular 3D**. Arraste a molécula, ajuste o zoom e use **Comparar enantiômeros**. Em **Tentar sobrepor**, os carbonos centrais ficam alinhados e a imagem espelhada aparece translúcida. **Separar moléculas** retorna à comparação lado a lado. Feche com **Voltar à atividade**, Esc ou o botão Voltar do navegador e confirme que a alternativa continua selecionada antes de verificar a resposta.
+- No certificado **Mestre do Cristal!**, abra **Explorar o cristal em 3D**. Compare as estruturas lado a lado, volte ao modelo individual e use **Restaurar posição** para recuperar o ângulo e o zoom iniciais. Se a revisão de respostas estava aberta, ela continua aberta ao voltar. A questão **Compare as duas formas do cristal** pertence à etapa anterior, no frame `2003:264`, com seu modelo esquemático e feedback próprios.
+- Arraste com o mouse ou um dedo para girar. Pelo teclado, coloque o modelo em foco e use as setas. Ajuste o zoom com a roda do mouse, o gesto de pinça ou o controle deslizante. A comparação usa a mesma escala nos dois lados e mantém a imagem espelhada fixa. O enunciado de **Tente sobrepor** descreve o giro do espelho. Girar o original produz a rotação relativa equivalente para testar a sobreposição.
+
+### Modelo e manutenção
+
+O modelo representa uma molécula de bromoclorofluorometano (CHClBrF), a mesma usada nas duas atividades. O carbono está ligado a H, Cl, Br e F. Os dados locais usam a geometria tetraédrica didática do modelo esquemático do MiraCast, com ângulos ideais de aproximadamente 109,47°, comprimentos normalizados e raios gráficos para facilitar a leitura. A legenda e os símbolos das esferas usam a paleta do material existente. [PubChem, CID 79058](https://pubchem.ncbi.nlm.nih.gov/compound/79058)
+
+`src/utils/moleculeGeometry.ts` reúne os átomos, as ligações e o centro de referência. A imagem espelhada reflete as coordenadas em relação ao plano perpendicular a X que passa pelo centro. A reflexão mantém a conectividade e as distâncias e inverte a configuração espacial. Para adicionar um modelo, informe nome, fórmula, centro, elementos, coordenadas e pares de índices das ligações. Indique a quiralidade com base na estrutura para que o botão use o termo adequado. O modo de sobreposição usa o centro fornecido pelo modelo.
+
+`MoleculeViewerButton` abre um diálogo em tela cheia e carrega `MoleculeViewer` sob demanda. O diálogo mantém a atividade montada. Uma entrada no histórico da aba permite usar Voltar dentro do mesmo endereço. Abrir ou fechar o diálogo preserva a seleção, o feedback e o progresso da expedição.
+
+`moleculeScene.ts` usa Three.js diretamente para desenhar esferas, cilindros e símbolos com câmera ortográfica. O componente aplica rotações por quaternions ao grupo inteiro. A cena atualiza em resposta a interações e redimensionamentos e libera o contexto gráfico e os demais recursos ao fechar. A renderização e os controles são executados no navegador com os dados incluídos no projeto. [Documentação do WebGLRenderer](https://threejs.org/docs/pages/WebGLRenderer)
+
+A renderização requer WebGL 2. Em caso de indisponibilidade, o botão de retorno permanece acessível. A validação em Chromium e WebKit no Linux inclui larguras de 320, 393, 768 e 1280 px. O teste de navegador abaixo percorre as duas atividades, simula o gesto de pinça no Chromium e verifica o retorno com WebGL 2 indisponível.
+
 ## Verificar
 
 ```sh
