@@ -46,7 +46,7 @@ for (const [step, frame] of [
   });
 }
 
-test("a tela do cristal oferece um modelo interativo e explica a disponibilidade da RA", async () => {
+test("a tela do cristal oferece o modelo interativo e um botão opcional para abrir o 3D", async () => {
   const { CristalRealidadeAumentada } = await server.ssrLoadModule(
     "/src/pages/CristalRealidadeAumentada/CristalRealidadeAumentada.tsx",
   );
@@ -56,6 +56,8 @@ test("a tela do cristal oferece um modelo interativo e explica a disponibilidade
   assert.match(markup, /Modelo original de CHClBrF/);
   assert.match(markup, /type="range"/);
   assert.match(markup, /Restaurar posição/);
+  assert.match(markup, /aria-haspopup="dialog"[^>]*>Explorar o cristal em 3D<\/button>/);
+  assert.doesNotMatch(markup, /<canvas|<dialog[^>]*\sopen/);
 });
 
 test("Tente sobrepor expõe um botão opcional e mantém a pergunta na página de origem", async () => {
@@ -95,8 +97,7 @@ test("o certificado de conclusão usa o nome do aluno e apresenta as cinco conqu
   assert.deepEqual(phases, ["1", "2", "3", "4", "5"]);
   assert.match(markup, /1 de 1 respostas avaliadas corretas/);
   assert.match(markup, /Imprimir ou salvar certificado em PDF/);
-  assert.match(markup, /aria-haspopup="dialog"[^>]*>Explorar o cristal em 3D<\/button>/);
-  assert.doesNotMatch(markup, /<canvas|<dialog[^>]*\sopen/);
+  assert.doesNotMatch(markup, /Explorar o cristal em 3D|<canvas|<dialog/);
   assert.match(markup, /Rever respostas e explicações/);
   assert.match(markup, /<footer class="page-footer"><button[^>]*>.*SAIR<\/button>/);
 });

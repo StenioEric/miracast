@@ -249,6 +249,59 @@ async function checkSuperpositionViewer(page) {
   assert.equal(page.url(), url);
 }
 
+async function checkCrystalViewer(page) {
+  const trigger = button(page, "Explorar o cristal em 3D");
+  const crystal = page.getByRole("dialog", { name: "O Cristal em 3D" });
+  const radio = page.locator(".choice-question").getByRole("radio").first();
+  const rotation = page.getByRole("slider").first();
+  const overlay = page.getByRole("checkbox", { name: "Mostrar o modelo original sobre a imagem espelhada" });
+  assert.equal(await crystal.count(), 0);
+  assert.equal(await page.locator("canvas").count(), 0);
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+  await rotation.press("ArrowRight");
+  assert.equal(await rotation.inputValue(), "26");
+  await overlay.check();
+  await radio.check();
+
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await trigger.click();
+  await wait(crystal.locator("canvas"));
+  await button(crystal, "Comparar enantiômeros").click();
+  await wait(text(crystal, "Imagem espelhada fixa"));
+  await page.setViewportSize({ width: 320, height: 640 });
+  assert.equal(await crystal.evaluate((element) => element.scrollWidth <= element.clientWidth), true);
+  await page.setViewportSize({ width: 768, height: 1024 });
+  assert.equal(await crystal.evaluate((element) => element.scrollWidth <= element.clientWidth), true);
+  assert.equal(await button(crystal, "Tentar sobrepor").count(), 0);
+  await button(crystal, "Ver apenas a molécula original").click();
+  assert.equal(await text(crystal, "Imagem espelhada fixa").count(), 0);
+  await page.goBack();
+  await crystal.waitFor({ state: "hidden" });
+  assert.equal(await radio.isChecked(), true);
+  assert.equal(await rotation.inputValue(), "26");
+  assert.equal(await overlay.isChecked(), true);
+  await button(page, "Restaurar posição").click();
+  assert.equal(await rotation.inputValue(), "25");
+
+  const nativeGetContext = await page.evaluateHandle(() => HTMLCanvasElement.prototype.getContext);
+  await nativeGetContext.evaluate((getContext) => {
+    HTMLCanvasElement.prototype.getContext = function (type, ...args) {
+      return type === "webgl2" ? null : getContext.call(this, type, ...args);
+    };
+  });
+  try {
+    await page.setViewportSize({ width: 393, height: 852 });
+    await trigger.click();
+    await wait(text(crystal, "A visualização 3D está indisponível neste navegador. Volte à atividade para continuar."));
+    await button(crystal, "Voltar à atividade").click();
+    await crystal.waitFor({ state: "hidden" });
+    assert.equal(await radio.isChecked(), true);
+  } finally {
+    await nativeGetContext.evaluate((getContext) => { HTMLCanvasElement.prototype.getContext = getContext; });
+    await nativeGetContext.dispose();
+  }
+}
+
 test("a expedição encerra o código, permite excluir o histórico e exige uma nova turma", { timeout: 90_000 }, async (t) => {
   process.env.VITE_SUPABASE_URL = databaseHost;
   process.env.VITE_SUPABASE_PUBLISHABLE_KEY = "sb_publishable_browser_test";
@@ -404,17 +457,10 @@ test("a expedição encerra o código, permite excluir o histórico e exige uma 
       await button(student, "Salvar resposta e continuar").click();
       continue;
     }
-    if (step === "augmented-reality") {
-      assert.equal(await student.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
-      const rotation = student.getByRole("slider").first();
-      await rotation.press("ArrowRight");
-      assert.equal(await rotation.inputValue(), "26");
-      await button(student, "Restaurar posição").click();
-      assert.equal(await rotation.inputValue(), "25");
-    }
-    if (step === "superposition") {
+    if (step === "superposition" || step === "augmented-reality") {
       const requests = api.advanceRequests;
-      await checkSuperpositionViewer(student);
+      if (step === "superposition") await checkSuperpositionViewer(student);
+      else await checkCrystalViewer(student);
       assert.equal(api.advanceRequests, requests);
       await wait(text(student, `Atividade ${index + 1} de 18`));
     }
@@ -425,8 +471,9 @@ test("a expedição encerra o código, permite excluir o histórico e exige uma 
     await button(student, "Verificar resposta").click();
     assert.equal(await choices.getByRole("radio").last().isDisabled(), true);
     assert.equal(await choices.locator("[data-correct]").evaluate((element) => element === document.activeElement), true);
-    if (step === "superposition") {
-      await button(student, "Abrir visualização molecular 3D").click();
+    if (step === "superposition" || step === "augmented-reality") {
+      const label = step === "superposition" ? "Abrir visualização molecular 3D" : "Explorar o cristal em 3D";
+      await button(student, label).click();
       await wait(student.getByRole("dialog").locator("canvas"));
       await button(student, "Voltar à atividade").click();
       await wait(choices.locator("[data-correct]"));
@@ -440,40 +487,7 @@ test("a expedição encerra o código, permite excluir o histórico e exige uma 
   assert.equal(await text(student, "Código pessoal de retomada").count(), 0);
   await text(student, "Rever respostas e explicações").click();
   await wait(text(student, "Os ligantes ocupam posições espelhadas."));
-  const requestsAtCompletion = api.advanceRequests;
-  const score = await student.locator(".master-score").textContent();
-  const crystal = student.getByRole("dialog", { name: "O Cristal em 3D" });
-  assert.equal(await crystal.count(), 0);
-  await student.setViewportSize({ width: 1280, height: 900 });
-  await button(student, "Explorar o cristal em 3D").click();
-  await wait(crystal.locator("canvas"));
-  await button(crystal, "Comparar enantiômeros").click();
-  await wait(text(crystal, "Imagem espelhada fixa"));
-  await student.setViewportSize({ width: 320, height: 640 });
-  assert.equal(await crystal.evaluate((element) => element.scrollWidth <= element.clientWidth), true);
-  await student.setViewportSize({ width: 768, height: 1024 });
-  assert.equal(await crystal.evaluate((element) => element.scrollWidth <= element.clientWidth), true);
-  assert.equal(await button(crystal, "Tentar sobrepor").count(), 0);
-  await button(crystal, "Ver apenas a molécula original").click();
-  assert.equal(await text(crystal, "Imagem espelhada fixa").count(), 0);
-  await student.goBack();
-  await crystal.waitFor({ state: "hidden" });
-  await wait(text(student, "Os ligantes ocupam posições espelhadas."));
-  assert.equal(await student.locator(".master-score").textContent(), score);
-  assert.equal(api.advanceRequests, requestsAtCompletion);
-
-  await student.evaluate(() => {
-    const getContext = HTMLCanvasElement.prototype.getContext;
-    HTMLCanvasElement.prototype.getContext = function (type, ...args) {
-      return type === "webgl2" ? null : getContext.call(this, type, ...args);
-    };
-  });
-  await student.setViewportSize({ width: 393, height: 852 });
-  await button(student, "Explorar o cristal em 3D").click();
-  await wait(text(crystal, "A visualização 3D está indisponível neste navegador. Volte à atividade para continuar."));
-  await button(crystal, "Voltar à atividade").click();
-  await crystal.waitFor({ state: "hidden" });
-  await wait(text(student, "Os ligantes ocupam posições espelhadas."));
+  assert.equal(await button(student, "Explorar o cristal em 3D").count(), 0);
   await student.emulateMedia({ media: "print" });
   assert.equal(await student.locator(".master-certificate").isVisible(), true);
   assert.equal(await heading(student, "Conquistas da Expedição").isVisible(), false);

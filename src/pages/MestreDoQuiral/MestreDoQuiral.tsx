@@ -5,9 +5,7 @@ import { StudentWorkStatus } from "../../components/StudentWork/StudentWorkStatu
 import { Button } from "../../components/Button/Button";
 import { ContentCard } from "../../components/ContentCard/ContentCard";
 import { DraMiraAvatar } from "../../components/DraMiraAvatar/DraMiraAvatar";
-import { MoleculeViewerButton } from "../../components/MoleculeViewer/MoleculeViewerButton";
 import { PageFooter, PageHeader, PageLayout } from "../../components/PageLayout/PageLayout";
-import { bromochlorofluoromethane } from "../../utils/moleculeGeometry";
 import "./MestreDoQuiral.css";
 
 type MestreDoQuiralProps = {
@@ -82,8 +80,6 @@ export function MestreDoQuiral({ answers, studentName, onFinish }: MestreDoQuira
           cada forma desviar a luz para um lado!
         </p>
       </ContentCard>
-
-      <MoleculeViewerButton title="O Cristal em 3D" label="Explorar o cristal em 3D" molecule={bromochlorofluoromethane} />
 
       <div className="master-score">
         <p>{progress.completed} de {progress.total} atividades concluídas.</p>
