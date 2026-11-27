@@ -1,5 +1,8 @@
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
+import { mkdtemp, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { test } from "node:test";
 import { chromium } from "playwright-core";
 import { createServer } from "vite";
@@ -19,6 +22,7 @@ function classroomApi() {
   let participant = null;
   let readsFail = false;
   let writesFail = false;
+  let advanceRequests = 0;
   let registrations = 0;
   let historyEnabled = false;
 
@@ -110,6 +114,7 @@ function classroomApi() {
         } : null);
       }
       case "/rest/v1/rpc/miracast_advance_class":
+        advanceRequests++;
         if (writesFail) return send({ code: "XX000", message: "Falha de envio simulada" }, 500);
         if (body.expected_step === participant.step) {
           if (body.answer) participant.answers[participant.step] = body.answer;
@@ -146,6 +151,7 @@ function classroomApi() {
   return {
     respond,
     get registrations() { return registrations; },
+    get advanceRequests() { return advanceRequests; },
     enableHistory() { historyEnabled = true; },
     failReads(value) { readsFail = value; },
     failWrites(value) { writesFail = value; },
@@ -157,22 +163,112 @@ const text = (page, value) => page.getByText(value, { exact: true });
 const heading = (page, name) => page.getByRole("heading", { name, exact: true });
 const wait = (locator) => locator.waitFor({ state: "visible" });
 
+async function checkSuperpositionViewer(page) {
+  const trigger = button(page, "Abrir visualização molecular 3D");
+  const dialog = page.getByRole("dialog", { name: "Tente sobrepor" });
+  const radio = page.locator(".choice-question").getByRole("radio").first();
+  const url = page.url();
+  await radio.check();
+  assert.equal(await dialog.count(), 0);
+  assert.equal(await page.locator("canvas").count(), 0);
+  await trigger.scrollIntoViewIfNeeded();
+  const scroll = await page.evaluate(() => scrollY);
+  await trigger.click();
+  const canvas = dialog.locator("canvas");
+  await wait(canvas);
+  assert.equal(page.url(), url);
+  assert.equal(await button(dialog, "Voltar à atividade").evaluate((element) => document.activeElement === element), true);
+  assert.deepEqual(await dialog.getByRole("list", { name: "Elementos químicos" }).getByRole("listitem").allTextContents(),
+    ["C · Carbono", "H · Hidrogênio", "Cl · Cloro", "Br · Bromo", "F · Flúor"]);
+
+  await button(dialog, "Comparar enantiômeros").click();
+  await wait(text(dialog, "Imagem espelhada fixa"));
+  assert.equal(await dialog.evaluate((element) => element.scrollWidth <= element.clientWidth), true);
+  await canvas.scrollIntoViewIfNeeded();
+  const bounds = await canvas.boundingBox();
+  const crop = { ...bounds, width: Math.floor(bounds.width / 2) };
+  const reference = { ...crop, x: bounds.x + bounds.width - crop.width };
+  const capture = (clip) => page.screenshot({ clip });
+  const left = await capture(crop);
+  const right = await capture(reference);
+  assert.notDeepEqual(left, right);
+  await page.mouse.move(bounds.x + bounds.width / 4, bounds.y + bounds.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(bounds.x + bounds.width / 3, bounds.y + bounds.height * .7, { steps: 4 });
+  await page.mouse.up();
+  assert.notDeepEqual(await capture(crop), left);
+  assert.deepEqual(await capture(reference), right);
+
+  const zoom = dialog.getByRole("slider", { name: "Zoom da molécula" });
+  await zoom.press("ArrowRight");
+  assert.equal(await zoom.inputValue(), "1.01");
+  await button(dialog, "Tentar sobrepor").click();
+  await wait(text(dialog, "Centros alinhados · imagem espelhada translúcida"));
+  await canvas.scrollIntoViewIfNeeded();
+  const overlay = await canvas.boundingBox();
+  const touch = await page.context().newCDPSession(page);
+  const x = overlay.x + overlay.width / 2;
+  const y = overlay.y + overlay.height / 2;
+  await touch.send("Input.dispatchTouchEvent", { type: "touchStart",
+    touchPoints: [{ x: x - 30, y, id: 1 }, { x: x + 30, y, id: 2 }] });
+  await touch.send("Input.dispatchTouchEvent", { type: "touchMove",
+    touchPoints: [{ x: x - 50, y, id: 1 }, { x: x + 50, y, id: 2 }] });
+  await touch.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+  await touch.detach();
+  assert.ok(Number(await zoom.inputValue()) > 1.01);
+  await button(dialog, "Separar moléculas").click();
+  await wait(text(dialog, "Imagem espelhada fixa"));
+  await button(dialog, "Restaurar posição").click();
+  assert.equal(await zoom.inputValue(), "1");
+  await canvas.scrollIntoViewIfNeeded();
+  const restored = await canvas.boundingBox();
+  assert.deepEqual(await capture({ ...crop, x: restored.x, y: restored.y }), left);
+
+  await button(dialog, "Voltar à atividade").click();
+  await dialog.waitFor({ state: "hidden" });
+  assert.equal(await canvas.count(), 0);
+  assert.equal(await radio.isChecked(), true);
+  assert.equal(await trigger.evaluate((element) => document.activeElement === element), true);
+  assert.equal(await page.evaluate(() => scrollY), scroll);
+
+  await trigger.click();
+  await wait(canvas);
+  await page.goBack();
+  await dialog.waitFor({ state: "hidden" });
+  assert.equal(await radio.isChecked(), true);
+  await page.goForward();
+  assert.equal(await dialog.count(), 0);
+  await trigger.click();
+  await wait(canvas);
+  await page.keyboard.press("Escape");
+  await dialog.waitFor({ state: "hidden" });
+  assert.equal(await radio.isChecked(), true);
+  assert.equal(page.url(), url);
+}
+
 test("a expedição encerra o código, permite excluir o histórico e exige uma nova turma", { timeout: 90_000 }, async (t) => {
   process.env.VITE_SUPABASE_URL = databaseHost;
   process.env.VITE_SUPABASE_PUBLISHABLE_KEY = "sb_publishable_browser_test";
   process.env.VITE_PASSWORD_MIN_LENGTH = "8";
   process.env.VITE_PASSWORD_REQUIRED_GROUPS = "";
-  const server = await createServer({ server: { host: "127.0.0.1", port: 0 } });
-  t.after(() => server.close());
+  const cacheDir = await mkdtemp(join(tmpdir(), "miracast-vite-"));
+  const server = await createServer({ cacheDir, server: { host: "127.0.0.1", port: 0 } });
+  t.after(async () => {
+    await server.close();
+    await rm(cacheDir, { recursive: true, force: true });
+  });
   await server.listen();
   const { port } = server.httpServer.address();
   const site = `http://127.0.0.1:${port}/`;
 
-  const browser = await chromium.launch({ executablePath: process.env.MIRACAST_CHROMIUM });
+  const browser = await chromium.launch({
+    executablePath: process.env.MIRACAST_CHROMIUM,
+    args: ["--use-angle=swiftshader", "--enable-unsafe-swiftshader"],
+  });
   t.after(() => browser.close());
   const api = classroomApi();
   async function pageInNewContext() {
-    const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
+    const context = await browser.newContext({ viewport: { width: 393, height: 852 }, hasTouch: true });
     context.setDefaultTimeout(12_000);
     await context.route(databaseHost + "/**", api.respond);
     await context.addInitScript(() => {
@@ -313,6 +409,12 @@ test("a expedição encerra o código, permite excluir o histórico e exige uma 
       await button(student, "Restaurar posição").click();
       assert.equal(await rotation.inputValue(), "25");
     }
+    if (step === "superposition") {
+      const requests = api.advanceRequests;
+      await checkSuperpositionViewer(student);
+      assert.equal(api.advanceRequests, requests);
+      await wait(text(student, `Atividade ${index + 1} de 18`));
+    }
     const choices = student.locator(".choice-question");
     await choices.getByRole("radio").first().check();
     assert.equal(await choices.getByRole("radio").last().isEnabled(), true);
@@ -320,6 +422,13 @@ test("a expedição encerra o código, permite excluir o histórico e exige uma 
     await button(student, "Verificar resposta").click();
     assert.equal(await choices.getByRole("radio").last().isDisabled(), true);
     assert.equal(await choices.locator("[data-correct]").evaluate((element) => element === document.activeElement), true);
+    if (step === "superposition") {
+      await button(student, "Abrir visualização molecular 3D").click();
+      await wait(student.getByRole("dialog").locator("canvas"));
+      await button(student, "Voltar à atividade").click();
+      await wait(choices.locator("[data-correct]"));
+      assert.equal(await choices.getByRole("radio").last().isDisabled(), true);
+    }
     await choices.getByRole("button", { name: /^Continuar/ }).click();
   }
 
@@ -327,6 +436,40 @@ test("a expedição encerra o código, permite excluir o histórico e exige uma 
   await wait(text(student, "Maria da Silva"));
   assert.equal(await text(student, "Código pessoal de retomada").count(), 0);
   await text(student, "Rever respostas e explicações").click();
+  await wait(text(student, "Os ligantes ocupam posições espelhadas."));
+  const requestsAtCompletion = api.advanceRequests;
+  const score = await student.locator(".master-score").textContent();
+  const crystal = student.getByRole("dialog", { name: "O Cristal em 3D" });
+  assert.equal(await crystal.count(), 0);
+  await student.setViewportSize({ width: 1280, height: 900 });
+  await button(student, "Explorar o cristal em 3D").click();
+  await wait(crystal.locator("canvas"));
+  await button(crystal, "Comparar enantiômeros").click();
+  await wait(text(crystal, "Imagem espelhada fixa"));
+  await student.setViewportSize({ width: 320, height: 640 });
+  assert.equal(await crystal.evaluate((element) => element.scrollWidth <= element.clientWidth), true);
+  await student.setViewportSize({ width: 768, height: 1024 });
+  assert.equal(await crystal.evaluate((element) => element.scrollWidth <= element.clientWidth), true);
+  assert.equal(await button(crystal, "Tentar sobrepor").count(), 0);
+  await button(crystal, "Ver apenas a molécula original").click();
+  assert.equal(await text(crystal, "Imagem espelhada fixa").count(), 0);
+  await student.goBack();
+  await crystal.waitFor({ state: "hidden" });
+  await wait(text(student, "Os ligantes ocupam posições espelhadas."));
+  assert.equal(await student.locator(".master-score").textContent(), score);
+  assert.equal(api.advanceRequests, requestsAtCompletion);
+
+  await student.evaluate(() => {
+    const getContext = HTMLCanvasElement.prototype.getContext;
+    HTMLCanvasElement.prototype.getContext = function (type, ...args) {
+      return type === "webgl2" ? null : getContext.call(this, type, ...args);
+    };
+  });
+  await student.setViewportSize({ width: 393, height: 852 });
+  await button(student, "Explorar o cristal em 3D").click();
+  await wait(text(crystal, "A visualização 3D está indisponível neste navegador. Volte à atividade para continuar."));
+  await button(crystal, "Voltar à atividade").click();
+  await crystal.waitFor({ state: "hidden" });
   await wait(text(student, "Os ligantes ocupam posições espelhadas."));
   await student.emulateMedia({ media: "print" });
   assert.equal(await student.locator(".master-certificate").isVisible(), true);

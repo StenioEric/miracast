@@ -58,6 +58,15 @@ test("a tela do cristal oferece um modelo interativo e explica a disponibilidade
   assert.match(markup, /Restaurar posição/);
 });
 
+test("Tente sobrepor expõe um botão opcional e mantém a pergunta na página de origem", async () => {
+  const { TenteSobrepor } = await server.ssrLoadModule("/src/pages/TenteSobrepor/TenteSobrepor.tsx");
+  const markup = renderToStaticMarkup(createElement(TenteSobrepor, { onContinue() {} }));
+  assert.match(markup, /aria-haspopup="dialog"[^>]*>Abrir visualização molecular 3D<\/button>/);
+  assert.ok(markup.includes(questions.superposition.prompt));
+  assert.equal([...markup.matchAll(/type="radio"/g)].length, questions.superposition.options.length);
+  assert.doesNotMatch(markup, /<canvas|<dialog[^>]*\sopen/);
+});
+
 test("o diagrama do ácido lático oferece um botão para cada carbono", async () => {
   const { AcidoLatico } = await server.ssrLoadModule("/src/pages/AcidoLatico/AcidoLatico.tsx");
   const markup = renderToStaticMarkup(createElement(AcidoLatico, { onContinue() {} }));
@@ -86,6 +95,8 @@ test("o certificado de conclusão usa o nome do aluno e apresenta as cinco conqu
   assert.deepEqual(phases, ["1", "2", "3", "4", "5"]);
   assert.match(markup, /1 de 1 respostas avaliadas corretas/);
   assert.match(markup, /Imprimir ou salvar certificado em PDF/);
+  assert.match(markup, /aria-haspopup="dialog"[^>]*>Explorar o cristal em 3D<\/button>/);
+  assert.doesNotMatch(markup, /<canvas|<dialog[^>]*\sopen/);
   assert.match(markup, /Rever respostas e explicações/);
   assert.match(markup, /<footer class="page-footer"><button[^>]*>.*SAIR<\/button>/);
 });
