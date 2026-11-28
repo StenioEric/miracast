@@ -2,7 +2,7 @@
 
 ## 1. Contexto do projeto
 
-O MiraCast é uma aplicação web gamificada com Realidade Aumentada para o ensino de Estereoquímica, desenvolvida como Trabalho de Conclusão de Curso de Sistemas de Informação.
+O MiraCast é uma aplicação web gamificada com visualização molecular 3D para o ensino de Estereoquímica, desenvolvida como Trabalho de Conclusão de Curso de Sistemas de Informação.
 
 O projeto deve priorizar simplicidade, qualidade de código, organização, manutenibilidade, usabilidade e consistência visual.
 

@@ -88,7 +88,6 @@ O [teste de histórico](supabase/tests/expedition_history.sql) verifica o encerr
 ## Pendências
 
 - **Figma.** Os IDs foram preservados no código. A comparação visual precisa da URL do arquivo Figma Design, além dos IDs. A versão funcional da entrada parte do frame `7:101` e inclui código e nome. A comparação com o frame `15:33` e a confirmação dos enunciados originais continuam pendentes.
-- **Realidade aumentada.** Na Tela 19 (frame `2003:264`), o aluno pode girar um modelo interativo no navegador e comparar os enantiômeros. A experiência com a câmera ainda está pendente.
 - **Resultados acadêmicos.** Relatórios de pesquisa e diploma requerem definição do conteúdo e dos critérios de emissão.
 
 Os conceitos usados nas verificações se baseiam no IUPAC Gold Book. [Quiralidade](https://goldbook.iupac.org/terms/view/C01058) · [Centro de quiralidade](https://goldbook.iupac.org/terms/view/C01060) · [Enantiômero](https://goldbook.iupac.org/terms/view/E02069) · [Atividade óptica](https://goldbook.iupac.org/terms/view/O04303)
