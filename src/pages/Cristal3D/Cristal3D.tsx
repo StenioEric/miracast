@@ -7,7 +7,7 @@ import { MoleculeComparison } from "../../components/Molecule/MoleculeComparison
 import { MoleculeViewerButton } from "../../components/MoleculeViewer/MoleculeViewerButton";
 import { bromochlorofluoromethane } from "../../utils/moleculeGeometry";
 
-export function CristalRealidadeAumentada({ onContinue }: { onContinue: (answer: Answer) => void }) {
+export function Cristal3D({ onContinue }: { onContinue: (answer: Answer) => void }) {
 
   return (
     <ActivityLayout
@@ -17,7 +17,6 @@ export function CristalRealidadeAumentada({ onContinue }: { onContinue: (answer:
     >
       <ContentCard>
         <h2>Modelo interativo do cristal</h2>
-        <p>A realidade aumentada ainda está indisponível. Explore as duas formas no modelo abaixo.</p>
         <MoleculeComparison />
         <MoleculeViewerButton title="O Cristal em 3D" label="Explorar o cristal em 3D" molecule={bromochlorofluoromethane} />
       </ContentCard>

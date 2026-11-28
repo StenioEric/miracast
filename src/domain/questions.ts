@@ -258,7 +258,7 @@ export const questions = {
     ],
   },
   "augmented-reality": {
-    prompt: "Ao comparar as duas formas em RA, o que você observou?",
+    prompt: "Ao comparar as duas formas em 3D, o que você observou?",
     correct: 1,
     options: [
       {

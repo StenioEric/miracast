@@ -2,7 +2,7 @@ import type { ComponentType } from "react";
 
 import type { ActivityId, Answer, ExpeditionStep } from "../domain/expedition";
 import { AcidoLatico } from "../pages/AcidoLatico/AcidoLatico";
-import { CristalRealidadeAumentada } from "../pages/CristalRealidadeAumentada/CristalRealidadeAumentada";
+import { Cristal3D } from "../pages/Cristal3D/Cristal3D";
 import { EixoRotacao } from "../pages/EixoRotacao/EixoRotacao";
 import { FormaAtiva } from "../pages/FormaAtiva/FormaAtiva";
 import { GirarMudaIdentidade } from "../pages/GirarMudaIdentidade/GirarMudaIdentidade";
@@ -43,7 +43,7 @@ const activityPages: Record<ActivityId, ComponentType<ActivityPageProps>> = {
   "lactic-acid": AcidoLatico,
   "compare-forms": MesmaOuDiferentes,
   qv4: VerificacaoQV4,
-  "augmented-reality": CristalRealidadeAumentada,
+  "augmented-reality": Cristal3D,
   qv5: VerificacaoFinalQV5,
   master: MestreDoQuiral,
 };

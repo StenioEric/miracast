@@ -47,12 +47,12 @@ for (const [step, frame] of [
 }
 
 test("a tela do cristal oferece o modelo interativo e um botão opcional para abrir o 3D", async () => {
-  const { CristalRealidadeAumentada } = await server.ssrLoadModule(
-    "/src/pages/CristalRealidadeAumentada/CristalRealidadeAumentada.tsx",
+  const { Cristal3D } = await server.ssrLoadModule(
+    "/src/pages/Cristal3D/Cristal3D.tsx",
   );
-  const markup = renderToStaticMarkup(createElement(CristalRealidadeAumentada, { onContinue() {} }));
+  const markup = renderToStaticMarkup(createElement(Cristal3D, { onContinue() {} }));
 
-  assert.match(markup, /A realidade aumentada ainda está indisponível/);
+  assert.match(markup, /Ao comparar as duas formas em 3D, o que você observou/);
   assert.match(markup, /Modelo original de CHClBrF/);
   assert.match(markup, /type="range"/);
   assert.match(markup, /Restaurar posição/);
