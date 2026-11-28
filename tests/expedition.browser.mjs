@@ -382,6 +382,8 @@ test("a expedição encerra o código, permite excluir o histórico e exige uma 
 
   const student = await pageInNewContext();
   await student.addInitScript(() => {
+    // Em HTTP pelo IP da rede local, o navegador não oferece randomUUID.
+    Object.defineProperty(crypto, "randomUUID", { value: undefined });
     sessionStorage.setItem("miracast:active-participant", "aluna-local");
   });
   const studentRequests = new Set();

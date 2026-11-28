@@ -6,9 +6,10 @@ const url = import.meta.env.VITE_SUPABASE_URL?.trim();
 const publishableKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY?.trim();
 
 function connect(projectUrl: string, key: string) {
-  // A chave aleatória separa o BroadcastChannel. O adaptador mantém a sessão
-  // da mesma aba quando a página recarrega.
-  const storageKey = `miracast:${crypto.randomUUID()}`;
+  // A chave separa o BroadcastChannel e pode ser gerada via HTTP na rede local.
+  const channelId = Array.from(crypto.getRandomValues(new Uint32Array(4)), (part) => part.toString(16)).join("-");
+  const storageKey = `miracast:${channelId}`;
+  // O adaptador mantém a sessão da mesma aba quando a página recarrega.
   const localKey = (key: string) => key.replace(storageKey, `miracast:auth:${projectUrl}`);
   const storage = (key: string) => key.endsWith("-code-verifier") ? localStorage : sessionStorage;
   return createClient(projectUrl, key, {
